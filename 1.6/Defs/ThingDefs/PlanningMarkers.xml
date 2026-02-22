@@ -1,6 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Defs>
-  <ThingDef Name="LOSOverlay_MarkerBase" Abstract="True">
+  <ThingDef>
+    <defName>LOSOverlay_ObserverMarker</defName>
+    <label>LOS observer</label>
+    <description>An observer point for the LOS overlay. Select to view LOS and toggle modes.</description>
     <thingClass>LOSOverlay.PlanningMarker</thingClass>
     <category>Building</category>
     <selectable>true</selectable>
@@ -10,17 +13,9 @@
     <fillPercent>0</fillPercent>
     <rotatable>false</rotatable>
     <useHitPoints>false</useHitPoints>
-    <designationCategory>LOSOverlay_Planning</designationCategory>
     <building>
       <isEdifice>false</isEdifice>
     </building>
-    <comps />
-  </ThingDef>
-
-  <ThingDef ParentName="LOSOverlay_MarkerBase">
-    <defName>LOSOverlay_ObserverMarker</defName>
-    <label>LOS observer</label>
-    <description>An observer point for the LOS overlay.</description>
     <graphicData>
       <texPath>UI/Designators/LOSObserver</texPath>
       <graphicClass>Graphic_Single</graphicClass>
@@ -28,44 +23,6 @@
       <color>(0.2, 0.8, 1.0, 0.7)</color>
     </graphicData>
     <size>(1,1)</size>
-  </ThingDef>
-
-  <ThingDef ParentName="LOSOverlay_MarkerBase">
-    <defName>LOSOverlay_WallMarker</defName>
-    <label>planned wall</label>
-    <description>A hypothetical wall that blocks LOS.</description>
-    <graphicData>
-      <texPath>UI/Designators/LOSWall</texPath>
-      <graphicClass>Graphic_Single</graphicClass>
-      <drawSize>(1,1)</drawSize>
-      <color>(0.6, 0.3, 0.1, 0.7)</color>
-    </graphicData>
-    <size>(1,1)</size>
-  </ThingDef>
-
-  <ThingDef ParentName="LOSOverlay_MarkerBase">
-    <defName>LOSOverlay_CoverMarker</defName>
-    <label>planned cover</label>
-    <description>Hypothetical cover (sandbag-equivalent).</description>
-    <graphicData>
-      <texPath>UI/Designators/LOSCover</texPath>
-      <graphicClass>Graphic_Single</graphicClass>
-      <drawSize>(1,1)</drawSize>
-      <color>(0.8, 0.7, 0.2, 0.7)</color>
-    </graphicData>
-    <size>(1,1)</size>
-  </ThingDef>
-
-  <ThingDef ParentName="LOSOverlay_MarkerBase">
-    <defName>LOSOverlay_OpenMarker</defName>
-    <label>planned opening</label>
-    <description>Marks an existing wall to be ignored in LOS.</description>
-    <graphicData>
-      <texPath>UI/Designators/LOSOpen</texPath>
-      <graphicClass>Graphic_Single</graphicClass>
-      <drawSize>(1,1)</drawSize>
-      <color>(0.2, 0.9, 0.2, 0.7)</color>
-    </graphicData>
-    <size>(1,1)</size>
+    <comps />
   </ThingDef>
 </Defs>

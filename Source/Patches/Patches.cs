@@ -12,9 +12,11 @@ namespace LOSOverlay.Patches
         {
             foreach (var gizmo in __result) yield return gizmo;
             if (__instance.IsColonistPlayerControlled && __instance.Drafted &&
-                __instance.equipment?.Primary != null && __instance.equipment.Primary.def.IsRangedWeapon)
+                __instance.equipment != null && __instance.equipment.Primary != null &&
+                __instance.equipment.Primary.def.IsRangedWeapon)
             {
                 yield return new Gizmo_LOSMode(__instance);
+                yield return new Gizmo_LOSDirection(__instance);
             }
         }
     }
@@ -26,7 +28,10 @@ namespace LOSOverlay.Patches
         {
             foreach (var gizmo in __result) yield return gizmo;
             if (__instance.Faction == Faction.OfPlayer)
+            {
                 yield return new Gizmo_LOSMode(__instance);
+                yield return new Gizmo_LOSDirection(__instance);
+            }
         }
     }
 }

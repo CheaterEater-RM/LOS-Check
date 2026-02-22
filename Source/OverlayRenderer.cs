@@ -19,7 +19,7 @@ namespace LOSOverlay
         private static bool _overlayActive;
         private static Map _overlayMap;
 
-        public static bool IsActive => _overlayActive;
+        public static bool IsActive { get { return _overlayActive; } }
 
         public static void SetOverlayData(Dictionary<IntVec3, CellLOSResult> results, Map map)
         {
@@ -63,7 +63,8 @@ namespace LOSOverlay
         {
             int key = ((int)(color.r * 15) << 12) | ((int)(color.g * 15) << 8) |
                       ((int)(color.b * 15) << 4) | (int)(color.a * 15);
-            if (!_materialCache.TryGetValue(key, out var mat))
+            Material mat;
+            if (!_materialCache.TryGetValue(key, out mat))
             {
                 mat = SolidColorMaterials.SimpleSolidColorMaterial(color, true);
                 _materialCache[key] = mat;
@@ -82,10 +83,12 @@ namespace LOSOverlay
 
         public static string GetCellTooltip(IntVec3 cell)
         {
-            if (!_overlayActive || !_currentResults.TryGetValue(cell, out var result)) return null;
+            CellLOSResult result;
+            if (!_overlayActive || !_currentResults.TryGetValue(cell, out result)) return null;
             if (!result.HasLOS) return "No line of sight";
-            if (result.CoverValue <= 0.01f) return "Clear — no cover";
-            return $"Cover: {LOSOverlay_Mod.CoverProvider.GetCoverLabel(result.CoverValue)}";
+            if (result.CoverValue <= 0.01f) return "Clear - no cover";
+            string coverLabel = LOSOverlay_Mod.CoverProvider.GetCoverLabel(result.CoverValue);
+            return coverLabel + "\n(Only adjacent cells provide cover)";
         }
     }
 }

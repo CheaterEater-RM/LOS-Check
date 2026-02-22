@@ -8,6 +8,12 @@ namespace LOSOverlay
 {
     public enum LOSMode { Off, Static, Leaning }
 
+    /// <summary>
+    /// Overlay direction: Offensive = "what cover does target have from me",
+    /// Defensive = "what cover do I have from threats at each cell"
+    /// </summary>
+    public enum OverlayDirection { Offensive, Defensive }
+
     public struct CellLOSResult
     {
         public bool HasLOS;
@@ -16,15 +22,15 @@ namespace LOSOverlay
     }
 
     /// <summary>
-    /// Core LOS and cover computation. Cover algorithm matches vanilla CoverUtility's
-    /// angle-based system with distance falloff.
+    /// Core LOS and cover computation. Cover algorithm matches vanilla CoverUtility.
+    /// Cover is ONLY provided by things in the 8 cells adjacent to the DEFENDER.
     /// </summary>
     public static class LOSCalculator
     {
         private static readonly List<IntVec3> _leanSources = new List<IntVec3>();
 
         public static void ComputeLOS(IntVec3 observerPos, Map map, LOSMode mode, int range,
-            Dictionary<IntVec3, CellLOSResult> results)
+            OverlayDirection direction, Dictionary<IntVec3, CellLOSResult> results)
         {
             results.Clear();
             if (mode == LOSMode.Off || !observerPos.InBounds(map)) return;
@@ -46,13 +52,14 @@ namespace LOSOverlay
                     if (target == observerPos) continue;
                     float distSq = (target - observerPos).LengthHorizontalSquared;
                     if (distSq > rangeSq) continue;
-                    results[target] = CheckCell(observerPos, target, map, mode, hypoState, provider);
+                    results[target] = CheckCell(observerPos, target, map, mode, direction, hypoState, provider);
                 }
             }
         }
 
         private static CellLOSResult CheckCell(IntVec3 observer, IntVec3 target, Map map,
-            LOSMode mode, HypotheticalMapState hypo, ICoverProvider provider)
+            LOSMode mode, OverlayDirection direction,
+            HypotheticalMapState hypo, ICoverProvider provider)
         {
             var result = new CellLOSResult();
             if (!IsTargetAccessible(target, map, hypo)) return result;
@@ -73,7 +80,10 @@ namespace LOSOverlay
             result.HasLOS = hasLOS;
             if (hasLOS)
             {
-                result.CoverValue = ComputeCover(observer, target, map, hypo, provider);
+                if (direction == OverlayDirection.Offensive)
+                    result.CoverValue = ComputeCover(observer, target, map, hypo, provider);
+                else
+                    result.CoverValue = ComputeCover(target, observer, map, hypo, provider);
                 result.NormalizedCover = provider.NormalizeCoverValue(result.CoverValue);
             }
             return result;
@@ -113,26 +123,24 @@ namespace LOSOverlay
         }
 
         /// <summary>
-        /// Cover at target from observer. Matches CoverUtility.TryFindAdjustedCoverInCell:
-        /// angle-based falloff + distance reduction.
+        /// Cover at defender from shooter direction. Matches CoverUtility.TryFindAdjustedCoverInCell.
+        /// Only adjacent cells matter — this is vanilla behavior.
         /// </summary>
-        private static float ComputeCover(IntVec3 observer, IntVec3 target, Map map,
+        private static float ComputeCover(IntVec3 shooterPos, IntVec3 defenderPos, Map map,
             HypotheticalMapState hypo, ICoverProvider provider)
         {
             float bestCover = 0f;
-            float shooterAngle = (observer - target).AngleFlat;
+            float shooterAngle = (shooterPos - defenderPos).AngleFlat;
 
             for (int i = 0; i < 8; i++)
             {
-                IntVec3 adjCell = target + GenAdj.AdjacentCells[i];
+                IntVec3 adjCell = defenderPos + GenAdj.AdjacentCells[i];
                 if (!adjCell.InBounds(map)) continue;
-                if (adjCell == observer) continue;
+                if (adjCell == shooterPos) continue;
 
                 float rawCover;
                 if (hypo != null)
-                {
                     rawCover = hypo.GetCoverValueAt(adjCell);
-                }
                 else
                 {
                     var cover = adjCell.GetCover(map);
@@ -141,10 +149,9 @@ namespace LOSOverlay
                 }
                 if (rawCover <= 0f) continue;
 
-                // Angle falloff (matches CoverUtility)
-                float coverAngle = (adjCell - target).AngleFlat;
+                float coverAngle = (adjCell - defenderPos).AngleFlat;
                 float angleDiff = GenGeo.AngleDifferenceBetween(coverAngle, shooterAngle);
-                if (!target.AdjacentToCardinal(adjCell)) angleDiff *= 1.75f;
+                if (!defenderPos.AdjacentToCardinal(adjCell)) angleDiff *= 1.75f;
 
                 float angleMult;
                 if (angleDiff < 15f) angleMult = 1.0f;
@@ -155,9 +162,7 @@ namespace LOSOverlay
                 else continue;
 
                 float effectiveCover = rawCover * angleMult;
-
-                // Distance reduction (matches CoverUtility)
-                float dist = (observer - adjCell).LengthHorizontal;
+                float dist = (shooterPos - adjCell).LengthHorizontal;
                 if (dist < 1.9f) effectiveCover *= 0.3333f;
                 else if (dist < 2.9f) effectiveCover *= 0.66666f;
 
@@ -167,17 +172,18 @@ namespace LOSOverlay
         }
 
         public static void ComputeCombinedLOS(List<IntVec3> observers, Map map, LOSMode mode,
-            int range, Dictionary<IntVec3, CellLOSResult> combined)
+            int range, OverlayDirection direction, Dictionary<IntVec3, CellLOSResult> combined)
         {
             combined.Clear();
             var single = new Dictionary<IntVec3, CellLOSResult>();
             foreach (var obs in observers)
             {
-                ComputeLOS(obs, map, mode, range, single);
+                ComputeLOS(obs, map, mode, range, direction, single);
                 foreach (var kvp in single)
                 {
                     if (!kvp.Value.HasLOS) continue;
-                    if (combined.TryGetValue(kvp.Key, out var existing))
+                    CellLOSResult existing;
+                    if (combined.TryGetValue(kvp.Key, out existing))
                     {
                         if (kvp.Value.NormalizedCover < existing.NormalizedCover)
                             combined[kvp.Key] = kvp.Value;

@@ -4,7 +4,9 @@ using Verse;
 namespace LOSOverlay
 {
     /// <summary>
-    /// Manages hypothetical terrain for planning mode. Transient — not saved.
+    /// Manages hypothetical terrain for planning mode.
+    /// Wall/Cover/Open are tracked as Designations (not Things) so they support
+    /// drag-placement and render above fog. Observer positions remain as Things.
     /// </summary>
     public class HypotheticalMapState : MapComponent
     {
@@ -15,11 +17,32 @@ namespace LOSOverlay
         public bool CombinedViewActive = false;
 
         private bool _dirty = true;
-        public bool IsDirty => _dirty;
-        public void MarkDirty() => _dirty = true;
-        public void ClearDirty() => _dirty = false;
+        public bool IsDirty { get { return _dirty; } }
+        public void MarkDirty() { _dirty = true; }
+        public void ClearDirty() { _dirty = false; }
 
         public HypotheticalMapState(Map map) : base(map) { }
+
+        public void RebuildFromDesignations()
+        {
+            HypotheticalWalls.Clear();
+            HypotheticalCover.Clear();
+            OpenSpaces.Clear();
+            if (map == null || map.designationManager == null) return;
+
+            var wallDef = LOSDesignationDefOf.LOSOverlay_PlanWall;
+            var coverDef = LOSDesignationDefOf.LOSOverlay_PlanCover;
+            var openDef = LOSDesignationDefOf.LOSOverlay_PlanOpen;
+
+            foreach (var des in map.designationManager.AllDesignations)
+            {
+                if (des.target.HasThing) continue;
+                if (des.def == wallDef) HypotheticalWalls.Add(des.target.Cell);
+                else if (des.def == coverDef) HypotheticalCover.Add(des.target.Cell);
+                else if (des.def == openDef) OpenSpaces.Add(des.target.Cell);
+            }
+            _dirty = true;
+        }
 
         public bool CellBlocksLOS(IntVec3 cell)
         {
@@ -55,36 +78,24 @@ namespace LOSOverlay
 
         public void ClearAll()
         {
+            if (map != null && map.designationManager != null)
+            {
+                var toRemove = new List<Designation>();
+                foreach (var des in map.designationManager.AllDesignations)
+                {
+                    if (des.def == LOSDesignationDefOf.LOSOverlay_PlanWall ||
+                        des.def == LOSDesignationDefOf.LOSOverlay_PlanCover ||
+                        des.def == LOSDesignationDefOf.LOSOverlay_PlanOpen)
+                        toRemove.Add(des);
+                }
+                foreach (var des in toRemove) map.designationManager.RemoveDesignation(des);
+            }
             HypotheticalWalls.Clear();
             HypotheticalCover.Clear();
             OpenSpaces.Clear();
             ObserverPositions.Clear();
             CombinedViewActive = false;
             _dirty = true;
-        }
-
-        public void AddWall(IntVec3 cell)
-        {
-            HypotheticalCover.Remove(cell); OpenSpaces.Remove(cell);
-            HypotheticalWalls.Add(cell); _dirty = true;
-        }
-
-        public void AddCover(IntVec3 cell)
-        {
-            HypotheticalWalls.Remove(cell); OpenSpaces.Remove(cell);
-            HypotheticalCover.Add(cell); _dirty = true;
-        }
-
-        public void AddOpenSpace(IntVec3 cell)
-        {
-            HypotheticalWalls.Remove(cell); HypotheticalCover.Remove(cell);
-            OpenSpaces.Add(cell); _dirty = true;
-        }
-
-        public void RemoveAt(IntVec3 cell)
-        {
-            HypotheticalWalls.Remove(cell); HypotheticalCover.Remove(cell);
-            OpenSpaces.Remove(cell); ObserverPositions.Remove(cell); _dirty = true;
         }
 
         public override void ExposeData() { base.ExposeData(); }

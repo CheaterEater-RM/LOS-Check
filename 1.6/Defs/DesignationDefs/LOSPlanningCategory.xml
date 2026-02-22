@@ -6,11 +6,12 @@
     <order>500</order>
     <specialDesignatorClasses>
       <li>LOSOverlay.Designator_PlaceObserver</li>
-      <li>LOSOverlay.Designator_PlaceWall</li>
-      <li>LOSOverlay.Designator_PlaceCover</li>
-      <li>LOSOverlay.Designator_PlaceOpen</li>
+      <li>LOSOverlay.Designator_PlanWall</li>
+      <li>LOSOverlay.Designator_PlanCover</li>
+      <li>LOSOverlay.Designator_PlanOpen</li>
+      <li>LOSOverlay.Designator_RemoveLOSPlanning</li>
       <li>LOSOverlay.Designator_CombinedView</li>
-      <li>LOSOverlay.Designator_ClearPlanning</li>
+      <li>LOSOverlay.Designator_ClearAllPlanning</li>
     </specialDesignatorClasses>
   </DesignationCategoryDef>
 </Defs>

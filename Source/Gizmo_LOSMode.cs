@@ -8,6 +8,7 @@ namespace LOSOverlay
     public class Gizmo_LOSMode : Command_Action
     {
         private static readonly Dictionary<int, LOSMode> _modeByThing = new Dictionary<int, LOSMode>();
+        private static readonly Dictionary<int, OverlayDirection> _dirByThing = new Dictionary<int, OverlayDirection>();
         private static readonly Dictionary<int, Dictionary<IntVec3, CellLOSResult>> _cachedResults =
             new Dictionary<int, Dictionary<IntVec3, CellLOSResult>>();
 
@@ -34,6 +35,18 @@ namespace LOSOverlay
         public static void SetMode(Thing thing, LOSMode mode)
         {
             if (thing != null) _modeByThing[thing.thingIDNumber] = mode;
+        }
+
+        public static OverlayDirection GetDirection(Thing thing)
+        {
+            if (thing == null) return OverlayDirection.Offensive;
+            OverlayDirection d;
+            return _dirByThing.TryGetValue(thing.thingIDNumber, out d) ? d : OverlayDirection.Offensive;
+        }
+
+        public static void SetDirection(Thing thing, OverlayDirection dir)
+        {
+            if (thing != null) _dirByThing[thing.thingIDNumber] = dir;
         }
 
         private static void CycleMode(Thing thing)
@@ -69,7 +82,8 @@ namespace LOSOverlay
             var mode = GetMode(_parent);
             if (mode == LOSMode.Off || _parent.Map == null) { OverlayRenderer.ClearOverlay(); return; }
             var results = GetOrCreateCache(_parent);
-            LOSCalculator.ComputeLOS(_parent.Position, _parent.Map, mode, GetRange(), results);
+            var dir = GetDirection(_parent);
+            LOSCalculator.ComputeLOS(_parent.Position, _parent.Map, mode, GetRange(), dir, results);
             OverlayRenderer.SetOverlayData(results, _parent.Map);
         }
 
@@ -125,9 +139,18 @@ namespace LOSOverlay
             else OverlayRenderer.ClearOverlay();
         }
 
+        public static void OnPositionChanged(Thing selected)
+        {
+            if (selected == null) return;
+            var mode = GetMode(selected);
+            if (mode != LOSMode.Off)
+                new Gizmo_LOSMode(selected).RefreshOverlay();
+        }
+
         public static void ClearAllCaches()
         {
-            _cachedResults.Clear(); _modeByThing.Clear(); OverlayRenderer.ClearOverlay();
+            _cachedResults.Clear(); _modeByThing.Clear(); _dirByThing.Clear();
+            OverlayRenderer.ClearOverlay();
         }
 
         public override GizmoResult GizmoOnGUI(Vector2 topLeft, float maxWidth, GizmoRenderParms parms)
@@ -135,6 +158,37 @@ namespace LOSOverlay
             var mode = GetMode(_parent);
             defaultLabel = "LOS: " + mode.ToString();
             defaultDesc = ModeDescription(mode);
+            return base.GizmoOnGUI(topLeft, maxWidth, parms);
+        }
+    }
+
+    public class Gizmo_LOSDirection : Command_Action
+    {
+        private readonly Thing _parent;
+
+        public Gizmo_LOSDirection(Thing parent)
+        {
+            _parent = parent;
+            var dir = Gizmo_LOSMode.GetDirection(parent);
+            defaultLabel = dir == OverlayDirection.Offensive ? "View: Offensive" : "View: Defensive";
+            defaultDesc = dir == OverlayDirection.Offensive
+                ? "Showing cover targets have FROM you.\nClick to switch to defensive view (cover YOU have from each direction)."
+                : "Showing cover YOU have from threats at each cell.\nClick to switch to offensive view.";
+            icon = TexCommand.FireAtWill;
+            Order = -94f;
+            action = () =>
+            {
+                var newDir = dir == OverlayDirection.Offensive ? OverlayDirection.Defensive : OverlayDirection.Offensive;
+                Gizmo_LOSMode.SetDirection(parent, newDir);
+                var mode = Gizmo_LOSMode.GetMode(parent);
+                if (mode != LOSMode.Off) new Gizmo_LOSMode(parent).RefreshOverlay();
+            };
+        }
+
+        public override GizmoResult GizmoOnGUI(Vector2 topLeft, float maxWidth, GizmoRenderParms parms)
+        {
+            var dir = Gizmo_LOSMode.GetDirection(_parent);
+            defaultLabel = dir == OverlayDirection.Offensive ? "View: Offensive" : "View: Defensive";
             return base.GizmoOnGUI(topLeft, maxWidth, parms);
         }
     }

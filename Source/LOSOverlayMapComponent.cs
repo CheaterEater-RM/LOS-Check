@@ -5,6 +5,7 @@ namespace LOSOverlay
     public class LOSOverlayMapComponent : MapComponent
     {
         private Thing _lastSelected;
+        private IntVec3 _lastPosition = IntVec3.Invalid;
 
         public LOSOverlayMapComponent(Map map) : base(map) { }
 
@@ -12,11 +13,19 @@ namespace LOSOverlay
         {
             base.MapComponentUpdate();
             var current = Find.Selector.SingleSelectedThing;
+
             if (current != _lastSelected)
             {
                 _lastSelected = current;
+                _lastPosition = current != null ? current.Position : IntVec3.Invalid;
                 Gizmo_LOSMode.OnSelectionChanged(current);
             }
+            else if (current != null && current.Position != _lastPosition)
+            {
+                _lastPosition = current.Position;
+                Gizmo_LOSMode.OnPositionChanged(current);
+            }
+
             OverlayRenderer.DrawOverlay();
         }
 
@@ -29,7 +38,7 @@ namespace LOSOverlay
             if (tooltip != null)
             {
                 var mousePos = UnityEngine.Event.current.mousePosition;
-                var rect = new UnityEngine.Rect(mousePos.x + 15, mousePos.y + 15, 250, 30);
+                var rect = new UnityEngine.Rect(mousePos.x + 15, mousePos.y + 15, 300, 40);
                 Widgets.Label(rect, tooltip);
             }
         }
