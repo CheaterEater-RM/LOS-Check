@@ -31,7 +31,6 @@ namespace LOSOverlay.Patches
         {
             if (t is PlanningMarker)
             {
-                Log.Message($"[LOS] SelectableByMapClick called for PlanningMarker at {t.Position}, fogged={t.Position.Fogged(t.Map)}, result before={__result}");
                 __result = true;
             }
         }

@@ -7,12 +7,13 @@
     <thingClass>LOSOverlay.PlanningMarker</thingClass>
     <category>Building</category>
     <selectable>true</selectable>
-    <!-- RealtimeOnly bypasses the fog mesh system — the marker stays visible
-         in fogged cells because we're drawing it directly each frame, not baking
-         it into the map mesh which gets occluded by fog. -->
+    <!-- RealtimeOnly: drawn each frame rather than baked into map mesh.
+         seeThroughFog: bypasses the DynamicDrawManager fog cull check so the
+         marker is visible even when placed in an unexplored (fogged) cell. -->
     <drawerType>RealtimeOnly</drawerType>
     <altitudeLayer>MetaOverlays</altitudeLayer>
     <passability>Standable</passability>
+    <seeThroughFog>true</seeThroughFog>
     <fillPercent>0</fillPercent>
     <rotatable>false</rotatable>
     <useHitPoints>false</useHitPoints>
