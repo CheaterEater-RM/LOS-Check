@@ -164,10 +164,11 @@ namespace LOSOverlay
 
         public override AcceptanceReport CanDesignateCell(IntVec3 loc)
         {
+            // Allow placement in fog and on walls — this is a planning tool.
             if (!loc.InBounds(Find.CurrentMap)) return false;
             var things = loc.GetThingList(Find.CurrentMap);
             for (int i = 0; i < things.Count; i++)
-                if (things[i] is PlanningMarker) return "Already has an observer here.";
+                if (things[i] is PlanningMarker) return AcceptanceReport.WasRejected; // silent
             return true;
         }
 
@@ -176,7 +177,10 @@ namespace LOSOverlay
             var def = DefDatabase<ThingDef>.GetNamed("LOSOverlay_ObserverMarker", errorOnFail: false);
             if (def == null) { Log.Error("[LOS Overlay] ThingDef LOSOverlay_ObserverMarker not found."); return; }
             var marker = (PlanningMarker)ThingMaker.MakeThing(def);
-            GenSpawn.Spawn(marker, loc, Find.CurrentMap);
+            // respawningAfterLoad: true skips the normal building spawn validation
+            // (which would reject fogged or impassable cells) while still calling
+            // SpawnSetup so our HypotheticalMapState gets updated.
+            GenSpawn.Spawn(marker, loc, Find.CurrentMap, Rot4.North, WipeMode.Vanish, respawningAfterLoad: true);
         }
 
         public override void SelectedUpdate() { GenDraw.DrawNoBuildEdgeLines(); }

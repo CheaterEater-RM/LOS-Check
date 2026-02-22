@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Defs>
   <ThingDef>
     <defName>LOSOverlay_ObserverMarker</defName>
@@ -7,12 +7,16 @@
     <thingClass>LOSOverlay.PlanningMarker</thingClass>
     <category>Building</category>
     <selectable>true</selectable>
-    <drawerType>MapMeshAndRealTime</drawerType>
+    <!-- RealtimeOnly bypasses the fog mesh system — the marker stays visible
+         in fogged cells because we're drawing it directly each frame, not baking
+         it into the map mesh which gets occluded by fog. -->
+    <drawerType>RealtimeOnly</drawerType>
     <altitudeLayer>MetaOverlays</altitudeLayer>
     <passability>Standable</passability>
     <fillPercent>0</fillPercent>
     <rotatable>false</rotatable>
     <useHitPoints>false</useHitPoints>
+    <neverMultiSelect>false</neverMultiSelect>
     <building>
       <isEdifice>false</isEdifice>
     </building>

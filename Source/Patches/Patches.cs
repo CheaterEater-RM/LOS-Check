@@ -21,4 +21,16 @@ namespace LOSOverlay.Patches
     // can't patch it directly. Instead we use a ThingComp added via XML
     // (see CompLOSMode / PlanningMarkers.xml) which delivers gizmos through
     // the standard CompGetGizmosExtra path.
+
+    // PlanningMarker fog bypass: SelectableByMapClick hard-rejects fogged cells
+    // with no override hook. We postfix it to return true for our marker.
+    [HarmonyPatch(typeof(ThingSelectionUtility), nameof(ThingSelectionUtility.SelectableByMapClick))]
+    public static class Patch_SelectableByMapClick_PlanningMarker
+    {
+        static void Postfix(Thing t, ref bool __result)
+        {
+            if (!__result && t is PlanningMarker)
+                __result = true;
+        }
+    }
 }
