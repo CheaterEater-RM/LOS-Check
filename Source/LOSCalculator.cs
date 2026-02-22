@@ -108,17 +108,21 @@ namespace LOSOverlay
 
                 var cell = new IntVec3(x, 0, z);
 
-                // Target cell is allowed through regardless of blocking
+                // Target cell is always reachable (IsTargetAccessible already checked it).
                 if (cell == target) return true;
 
-                // Hypothetical open space overrides everything — check first
-                if (hypo != null && hypo.OpenSpaces.Contains(cell)) continue;
-                if (hypo != null && hypo.HypotheticalWalls.Contains(cell)) return false;
+                // Designations override everything beneath them (checked in priority order).
+                if (hypo != null)
+                {
+                    if (hypo.HypotheticalWalls.Contains(cell)) return false;  // wall  → blocks
+                    if (hypo.HypotheticalCover.Contains(cell)) continue;      // cover → passable
+                    if (hypo.OpenSpaces.Contains(cell))        continue;      // open  → passable
+                }
 
-                // Fogged cells block unless designated open above
+                // No designation: fog = unknown = blocks.
                 if (cell.Fogged(map)) return false;
 
-                // Fall back to real map
+                // No designation, not fogged: use real map.
                 if (!cell.CanBeSeenOverFast(map)) return false;
             }
             return true;
@@ -197,17 +201,24 @@ namespace LOSOverlay
             }
         }
 
+        // Designation priority (highest to lowest):
+        //   1. PlanWall   → always blocks, regardless of what's underneath
+        //   2. PlanCover  → always passable (cover object), regardless of what's underneath
+        //   3. PlanOpen   → always passable (empty space), regardless of what's underneath
+        //   4. (no desig) → fog → unknown, treat as wall
+        //   4. (no desig) → real map state
         private static bool HypoBlocks(IntVec3 cell, Map map, HypotheticalMapState hypo)
         {
             if (!cell.InBounds(map)) return true;
             if (hypo != null)
             {
-                if (hypo.OpenSpaces.Contains(cell)) return false;
-                if (hypo.HypotheticalWalls.Contains(cell)) return true;
+                if (hypo.HypotheticalWalls.Contains(cell))  return true;   // wall designation → blocks
+                if (hypo.HypotheticalCover.Contains(cell))  return false;  // cover designation → passable
+                if (hypo.OpenSpaces.Contains(cell))         return false;  // open designation  → passable
             }
-            // Fogged cells with no designation are treated as blocking —
-            // we don't know what's there, so assume walls.
+            // No designation: fog = unknown terrain = treat as wall.
             if (cell.Fogged(map)) return true;
+            // No designation, not fogged: use real map.
             return !cell.CanBeSeenOverFast(map);
         }
 
@@ -216,11 +227,13 @@ namespace LOSOverlay
             if (!cell.InBounds(map)) return false;
             if (hypo != null)
             {
-                if (hypo.HypotheticalWalls.Contains(cell)) return false;
-                if (hypo.OpenSpaces.Contains(cell)) return true;
+                if (hypo.HypotheticalWalls.Contains(cell))  return false;  // wall → not a valid target cell
+                if (hypo.HypotheticalCover.Contains(cell))  return true;   // cover → passable, valid target
+                if (hypo.OpenSpaces.Contains(cell))         return true;   // open  → passable, valid target
             }
-            // Fogged cells are inaccessible as targets unless explicitly opened.
+            // No designation: fog = unknown = not accessible as a target.
             if (cell.Fogged(map)) return false;
+            // No designation, not fogged: use real map.
             var edifice = cell.GetEdifice(map);
             return edifice == null || !LOSOverlay_Mod.CoverProvider.BlocksLOS(edifice);
         }

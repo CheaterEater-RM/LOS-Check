@@ -88,7 +88,7 @@ namespace LOSOverlay
             if (!result.HasLOS) return "No line of sight";
             if (result.CoverValue <= 0.01f) return "Clear - no cover";
             string coverLabel = LOSOverlay_Mod.CoverProvider.GetCoverLabel(result.CoverValue);
-            return coverLabel + "\n(Only adjacent cells provide cover)";
+            return coverLabel;
         }
     }
 }

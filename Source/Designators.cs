@@ -45,6 +45,10 @@ namespace LOSOverlay
             // Already has this designation → skip silently (no message).
             if (Find.CurrentMap.designationManager.DesignationAt(loc, TargetDesignationDef) != null)
                 return AcceptanceReport.WasRejected;
+            // Observer marker present → protected, can't be overwritten by a designation.
+            var things = Find.CurrentMap.thingGrid.ThingsListAt(loc);
+            for (int i = 0; i < things.Count; i++)
+                if (things[i] is PlanningMarker) return AcceptanceReport.WasRejected;
             return true;
         }
 
@@ -102,14 +106,6 @@ namespace LOSOverlay
             icon = LOSTex.Wall;
         }
 
-        public override AcceptanceReport CanDesignateCell(IntVec3 loc)
-        {
-            var baseResult = base.CanDesignateCell(loc);
-            if (!baseResult.Accepted) return baseResult;
-            // Fogged cells and cells with existing walls are both fine —
-            // designations override whatever's there.
-            return true;
-        }
     }
 
     public class Designator_PlanCover : Designator_LOSPlanDesignation
@@ -131,20 +127,8 @@ namespace LOSOverlay
         public Designator_PlanOpen()
         {
             defaultLabel = "Plan Opening";
-            defaultDesc = "Mark existing walls as open for LOS calculations.\nDrag to place lines.";
+            defaultDesc = "Mark a cell as open space for LOS calculations.\nDrag to place lines or rectangles.";
             icon = LOSTex.Open;
-        }
-
-        public override AcceptanceReport CanDesignateCell(IntVec3 loc)
-        {
-            var baseResult = base.CanDesignateCell(loc);
-            if (!baseResult.Accepted) return baseResult;
-            // Fogged cells are treated as walls for planning purposes — allow opening them.
-            if (loc.Fogged(Find.CurrentMap)) return true;
-            var edifice = loc.GetEdifice(Find.CurrentMap);
-            if (edifice == null || !LOSOverlay_Mod.CoverProvider.BlocksLOS(edifice))
-                return "No wall or obstacle here to open.";
-            return true;
         }
     }
 
@@ -175,10 +159,20 @@ namespace LOSOverlay
 
         public override void DesignateSingleCell(IntVec3 loc)
         {
+            var map = Find.CurrentMap;
+            // Clear any LOS designations underneath before spawning the observer.
+            var toRemove = new List<Designation>();
+            foreach (var des in map.designationManager.AllDesignationsAt(loc))
+                if (des.def == LOSDesignationDefOf.LOSOverlay_PlanWall ||
+                    des.def == LOSDesignationDefOf.LOSOverlay_PlanCover ||
+                    des.def == LOSDesignationDefOf.LOSOverlay_PlanOpen)
+                    toRemove.Add(des);
+            foreach (var des in toRemove) map.designationManager.RemoveDesignation(des);
+
             var def = DefDatabase<ThingDef>.GetNamed("LOSOverlay_ObserverMarker", errorOnFail: false);
             if (def == null) { Log.Error("[LOS Overlay] ThingDef LOSOverlay_ObserverMarker not found."); return; }
             var marker = (PlanningMarker)ThingMaker.MakeThing(def);
-            GenSpawn.Spawn(marker, loc, Find.CurrentMap, Rot4.North, WipeMode.Vanish, respawningAfterLoad: true);
+            GenSpawn.Spawn(marker, loc, map, Rot4.North, WipeMode.Vanish, respawningAfterLoad: true);
         }
 
         public override void SelectedUpdate() { GenDraw.DrawNoBuildEdgeLines(); }
