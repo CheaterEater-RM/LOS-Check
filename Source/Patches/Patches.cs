@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using HarmonyLib;
 using RimWorld;
 using Verse;
@@ -16,7 +16,6 @@ namespace LOSOverlay.Patches
                 __instance.equipment.Primary.def.IsRangedWeapon)
             {
                 yield return new Gizmo_LOSMode(__instance);
-                yield return new Gizmo_LOSDirection(__instance);
             }
         }
     }
@@ -30,7 +29,6 @@ namespace LOSOverlay.Patches
             if (__instance.Faction == Faction.OfPlayer)
             {
                 yield return new Gizmo_LOSMode(__instance);
-                yield return new Gizmo_LOSDirection(__instance);
             }
         }
     }

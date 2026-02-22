@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -25,6 +26,40 @@ namespace LOSOverlay
             action = () => { CycleMode(parent); RefreshOverlay(); };
         }
 
+        // ── Right-click menu: offensive / defensive ───────────────────────
+        public override IEnumerable<FloatMenuOption> RightClickFloatMenuOptions
+        {
+            get
+            {
+                var dir = GetDirection(_parent);
+
+                // FloatMenuOption(string label, Action action, Texture2D iconTex, Color iconColor, ...)
+                // Passing null action marks it as Disabled (greyed out) automatically.
+                Action offAction = dir == OverlayDirection.Offensive ? null : (Action)(() =>
+                {
+                    SetDirection(_parent, OverlayDirection.Offensive);
+                    if (GetMode(_parent) != LOSMode.Off) RefreshOverlay();
+                });
+                yield return new FloatMenuOption(
+                    "Offensive (cover targets have FROM you)",
+                    offAction,
+                    (Texture2D)TexCommand.FireAtWill,
+                    Color.white);
+
+                Action defAction = dir == OverlayDirection.Defensive ? null : (Action)(() =>
+                {
+                    SetDirection(_parent, OverlayDirection.Defensive);
+                    if (GetMode(_parent) != LOSMode.Off) RefreshOverlay();
+                });
+                yield return new FloatMenuOption(
+                    "Defensive (cover YOU have from each threat)",
+                    defAction,
+                    (Texture2D)TexCommand.DesirePower,
+                    Color.white);
+            }
+        }
+
+        // ── Static helpers ────────────────────────────────────────────────
         public static LOSMode GetMode(Thing thing)
         {
             if (thing == null) return LOSMode.Off;
@@ -55,9 +90,9 @@ namespace LOSOverlay
             LOSMode next;
             switch (current)
             {
-                case LOSMode.Off: next = LOSMode.Static; break;
-                case LOSMode.Static: next = LOSMode.Leaning; break;
-                default: next = LOSMode.Off; break;
+                case LOSMode.Off:     next = LOSMode.Static;  break;
+                case LOSMode.Static:  next = LOSMode.Leaning; break;
+                default:              next = LOSMode.Off;     break;
             }
             SetMode(thing, next);
         }
@@ -67,16 +102,17 @@ namespace LOSOverlay
             switch (mode)
             {
                 case LOSMode.Off:
-                    return "LOS overlay off. Click to enable static mode.";
+                    return "LOS overlay off. Left-click to enable static mode.\nRight-click to change view direction.";
                 case LOSMode.Static:
-                    return "Static LOS from this position.\nGreen = clear, Yellow = partial cover, Red = heavy cover.\nClick for leaning mode.";
+                    return "Static LOS from this position.\nGreen = clear, Yellow = partial cover, Red = heavy cover.\nLeft-click for leaning mode. Right-click for view direction.";
                 case LOSMode.Leaning:
-                    return "LOS including lean-around-corner positions.\nGreen = clear, Yellow = partial cover, Red = heavy cover.\nClick to turn off.";
+                    return "LOS including lean-around-corner positions.\nGreen = clear, Yellow = partial cover, Red = heavy cover.\nLeft-click to turn off. Right-click for view direction.";
                 default:
                     return "";
             }
         }
 
+        // ── Overlay refresh ───────────────────────────────────────────────
         public void RefreshOverlay()
         {
             var mode = GetMode(_parent);
@@ -122,6 +158,7 @@ namespace LOSOverlay
             return cache;
         }
 
+        // ── Selection-change callbacks ────────────────────────────────────
         public static void OnSelectionChanged(Thing selected)
         {
             if (selected == null) { OverlayRenderer.ClearOverlay(); return; }
@@ -153,42 +190,12 @@ namespace LOSOverlay
             OverlayRenderer.ClearOverlay();
         }
 
+        // ── GUI ───────────────────────────────────────────────────────────
         public override GizmoResult GizmoOnGUI(Vector2 topLeft, float maxWidth, GizmoRenderParms parms)
         {
             var mode = GetMode(_parent);
             defaultLabel = "LOS: " + mode.ToString();
             defaultDesc = ModeDescription(mode);
-            return base.GizmoOnGUI(topLeft, maxWidth, parms);
-        }
-    }
-
-    public class Gizmo_LOSDirection : Command_Action
-    {
-        private readonly Thing _parent;
-
-        public Gizmo_LOSDirection(Thing parent)
-        {
-            _parent = parent;
-            var dir = Gizmo_LOSMode.GetDirection(parent);
-            defaultLabel = dir == OverlayDirection.Offensive ? "View: Offensive" : "View: Defensive";
-            defaultDesc = dir == OverlayDirection.Offensive
-                ? "Showing cover targets have FROM you.\nClick to switch to defensive view (cover YOU have from each direction)."
-                : "Showing cover YOU have from threats at each cell.\nClick to switch to offensive view.";
-            icon = TexCommand.FireAtWill;
-            Order = -94f;
-            action = () =>
-            {
-                var newDir = dir == OverlayDirection.Offensive ? OverlayDirection.Defensive : OverlayDirection.Offensive;
-                Gizmo_LOSMode.SetDirection(parent, newDir);
-                var mode = Gizmo_LOSMode.GetMode(parent);
-                if (mode != LOSMode.Off) new Gizmo_LOSMode(parent).RefreshOverlay();
-            };
-        }
-
-        public override GizmoResult GizmoOnGUI(Vector2 topLeft, float maxWidth, GizmoRenderParms parms)
-        {
-            var dir = Gizmo_LOSMode.GetDirection(_parent);
-            defaultLabel = dir == OverlayDirection.Offensive ? "View: Offensive" : "View: Defensive";
             return base.GizmoOnGUI(topLeft, maxWidth, parms);
         }
     }

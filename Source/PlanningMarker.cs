@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using RimWorld;
 using Verse;
 
@@ -39,8 +39,7 @@ namespace LOSOverlay
         public override IEnumerable<Gizmo> GetGizmos()
         {
             foreach (var g in base.GetGizmos()) yield return g;
-            yield return new Gizmo_LOSMode(this);
-            yield return new Gizmo_LOSDirection(this);
+            yield return new Gizmo_LOSMode(this);          // right-click for direction
             yield return new Command_Action
             {
                 defaultLabel = "Remove Observer",
@@ -52,7 +51,7 @@ namespace LOSOverlay
 
         public override string GetInspectString()
         {
-            return "LOS Observer - select to view overlay\nUse gizmos to toggle mode and direction.";
+            return "LOS Observer - select to view overlay\nLeft-click the LOS gizmo to cycle mode. Right-click for offensive/defensive view.";
         }
     }
 }

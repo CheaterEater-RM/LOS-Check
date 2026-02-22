@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -21,16 +22,24 @@ namespace LOSOverlay
             useMouseIcon = true;
         }
 
+        // Hook into the vanilla Plans draw-style system so dragging works.
+        public override DrawStyleCategoryDef DrawStyleCategory => DrawStyleCategoryDefOf.Plans;
+
+        // Show dimension numbers while dragging.
         public override bool DragDrawMeasurements => true;
 
+        // ── Cell acceptance ───────────────────────────────────────────────
+        // Only require in-bounds. No fog check — these are planning tools.
         public override AcceptanceReport CanDesignateCell(IntVec3 loc)
         {
             if (!loc.InBounds(Find.CurrentMap)) return false;
-            var existing = Find.CurrentMap.designationManager.DesignationAt(loc, TargetDesignationDef);
-            if (existing != null) return false;
+            // Already has this designation → skip silently (no message).
+            if (Find.CurrentMap.designationManager.DesignationAt(loc, TargetDesignationDef) != null)
+                return AcceptanceReport.WasRejected;
             return true;
         }
 
+        // ── Placement ─────────────────────────────────────────────────────
         public override void DesignateSingleCell(IntVec3 loc)
         {
             var map = Find.CurrentMap;
@@ -39,7 +48,23 @@ namespace LOSOverlay
             map.GetComponent<HypotheticalMapState>().RebuildFromDesignations();
         }
 
-        private void RemoveExistingLOSDesignations(Map map, IntVec3 loc)
+        // Override multi-cell so we can skip the tutor-system fog check that
+        // vanilla DesignateMultiCell enforces, and place on any in-bounds cell.
+        public override void DesignateMultiCell(IEnumerable<IntVec3> cells)
+        {
+            bool any = false;
+            foreach (var loc in cells)
+            {
+                if (CanDesignateCell(loc).Accepted)
+                {
+                    DesignateSingleCell(loc);
+                    any = true;
+                }
+            }
+            Finalize(any);
+        }
+
+        protected void RemoveExistingLOSDesignations(Map map, IntVec3 loc)
         {
             var toRemove = new List<Designation>();
             foreach (var des in map.designationManager.AllDesignationsAt(loc))
@@ -55,55 +80,53 @@ namespace LOSOverlay
         public override void SelectedUpdate() { GenDraw.DrawNoBuildEdgeLines(); }
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+
     public class Designator_PlanWall : Designator_LOSPlanDesignation
     {
-        protected override DesignationDef TargetDesignationDef
-        {
-            get { return LOSDesignationDefOf.LOSOverlay_PlanWall; }
-        }
+        protected override DesignationDef TargetDesignationDef => LOSDesignationDefOf.LOSOverlay_PlanWall;
+
         public Designator_PlanWall()
         {
             defaultLabel = "Plan Wall";
             defaultDesc = "Place hypothetical walls that block LOS.\nDrag to place lines or rectangles.";
-            icon = TexCommand.ForbidOn;
+            icon = ContentFinder<Texture2D>.Get("UI/Designators/LOSWall");
         }
+
         public override AcceptanceReport CanDesignateCell(IntVec3 loc)
         {
             var baseResult = base.CanDesignateCell(loc);
             if (!baseResult.Accepted) return baseResult;
             var edifice = loc.GetEdifice(Find.CurrentMap);
             if (edifice != null && LOSOverlay_Mod.CoverProvider.BlocksLOS(edifice))
-                return "Already a wall here.";
+                return AcceptanceReport.WasRejected; // silent — already a real wall
             return true;
         }
     }
 
     public class Designator_PlanCover : Designator_LOSPlanDesignation
     {
-        protected override DesignationDef TargetDesignationDef
-        {
-            get { return LOSDesignationDefOf.LOSOverlay_PlanCover; }
-        }
+        protected override DesignationDef TargetDesignationDef => LOSDesignationDefOf.LOSOverlay_PlanCover;
+
         public Designator_PlanCover()
         {
             defaultLabel = "Plan Cover";
             defaultDesc = "Place hypothetical cover (sandbag-equivalent).\nDrag to place lines or rectangles.";
-            icon = TexCommand.DesirePower;
+            icon = ContentFinder<Texture2D>.Get("UI/Designators/LOSCover");
         }
     }
 
     public class Designator_PlanOpen : Designator_LOSPlanDesignation
     {
-        protected override DesignationDef TargetDesignationDef
-        {
-            get { return LOSDesignationDefOf.LOSOverlay_PlanOpen; }
-        }
+        protected override DesignationDef TargetDesignationDef => LOSDesignationDefOf.LOSOverlay_PlanOpen;
+
         public Designator_PlanOpen()
         {
             defaultLabel = "Plan Opening";
             defaultDesc = "Mark existing walls as open for LOS calculations.\nDrag to place lines.";
-            icon = TexCommand.ClearPrioritizedWork;
+            icon = ContentFinder<Texture2D>.Get("UI/Designators/LOSOpen");
         }
+
         public override AcceptanceReport CanDesignateCell(IntVec3 loc)
         {
             var baseResult = base.CanDesignateCell(loc);
@@ -125,9 +148,7 @@ namespace LOSOverlay
         {
             defaultLabel = "LOS Observer";
             defaultDesc = "Place an observer point. Select it to view LOS overlay.";
-            icon = TexCommand.Attack;
-            soundDragSustain = SoundDefOf.Designate_DragStandard;
-            soundDragChanged = SoundDefOf.Designate_DragStandard_Changed;
+            icon = ContentFinder<Texture2D>.Get("UI/Designators/LOSObserver");
             soundSucceeded = SoundDefOf.Designate_PlanAdd;
             useMouseIcon = true;
         }
@@ -153,7 +174,7 @@ namespace LOSOverlay
     }
 
     // =========================================================================
-    // Utility: eraser, clear all, combined view
+    // Eraser — drag to remove all LOS planning markers
     // =========================================================================
 
     public class Designator_RemoveLOSPlanning : Designator
@@ -169,6 +190,7 @@ namespace LOSOverlay
             useMouseIcon = true;
         }
 
+        public override DrawStyleCategoryDef DrawStyleCategory => DrawStyleCategoryDefOf.RemovePlans;
         public override bool DragDrawMeasurements => true;
 
         public override AcceptanceReport CanDesignateCell(IntVec3 loc)
@@ -184,7 +206,7 @@ namespace LOSOverlay
             var things = loc.GetThingList(Find.CurrentMap);
             for (int i = 0; i < things.Count; i++)
                 if (things[i] is PlanningMarker) return true;
-            return false;
+            return AcceptanceReport.WasRejected;
         }
 
         public override void DesignateSingleCell(IntVec3 loc)
@@ -207,7 +229,25 @@ namespace LOSOverlay
 
             map.GetComponent<HypotheticalMapState>().RebuildFromDesignations();
         }
+
+        public override void DesignateMultiCell(IEnumerable<IntVec3> cells)
+        {
+            bool any = false;
+            foreach (var loc in cells)
+            {
+                if (CanDesignateCell(loc).Accepted)
+                {
+                    DesignateSingleCell(loc);
+                    any = true;
+                }
+            }
+            Finalize(any);
+        }
     }
+
+    // =========================================================================
+    // Utility: clear all, combined view
+    // =========================================================================
 
     public class Designator_ClearAllPlanning : Designator
     {
@@ -219,7 +259,9 @@ namespace LOSOverlay
             soundSucceeded = SoundDefOf.Designate_PlanRemove;
             useMouseIcon = false;
         }
+
         public override AcceptanceReport CanDesignateCell(IntVec3 loc) { return false; }
+
         public override void ProcessInput(Event ev)
         {
             base.ProcessInput(ev);
@@ -239,9 +281,13 @@ namespace LOSOverlay
         {
             defaultLabel = "Combined LOS View";
             defaultDesc = "Show combined LOS from ALL observer markers.\nCover shown is the minimum (most exposed angle).";
-            icon = TexCommand.Attack; soundSucceeded = SoundDefOf.Click; useMouseIcon = false;
+            icon = TexCommand.Attack;
+            soundSucceeded = SoundDefOf.Click;
+            useMouseIcon = false;
         }
+
         public override AcceptanceReport CanDesignateCell(IntVec3 loc) { return false; }
+
         public override void ProcessInput(Event ev)
         {
             base.ProcessInput(ev);
