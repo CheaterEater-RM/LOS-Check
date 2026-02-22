@@ -175,13 +175,14 @@ namespace LOSOverlay
 
         public override void DesignateSingleCell(IntVec3 loc)
         {
+            var map = Find.CurrentMap;
+            Log.Message($"[LOS] DesignateSingleCell at {loc}, fogged={loc.Fogged(map)}, inBounds={loc.InBounds(map)}");
             var def = DefDatabase<ThingDef>.GetNamed("LOSOverlay_ObserverMarker", errorOnFail: false);
             if (def == null) { Log.Error("[LOS Overlay] ThingDef LOSOverlay_ObserverMarker not found."); return; }
             var marker = (PlanningMarker)ThingMaker.MakeThing(def);
-            // respawningAfterLoad: true skips the normal building spawn validation
-            // (which would reject fogged or impassable cells) while still calling
-            // SpawnSetup so our HypotheticalMapState gets updated.
-            GenSpawn.Spawn(marker, loc, Find.CurrentMap, Rot4.North, WipeMode.Vanish, respawningAfterLoad: true);
+            Log.Message($"[LOS] Spawning marker, marker.Spawned before={marker.Spawned}");
+            var result = GenSpawn.Spawn(marker, loc, map, Rot4.North, WipeMode.Vanish, respawningAfterLoad: true);
+            Log.Message($"[LOS] Spawn result={result}, marker.Spawned after={marker.Spawned}");
         }
 
         public override void SelectedUpdate() { GenDraw.DrawNoBuildEdgeLines(); }
