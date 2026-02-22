@@ -29,8 +29,11 @@ namespace LOSOverlay.Patches
     {
         static void Postfix(Thing t, ref bool __result)
         {
-            if (!__result && t is PlanningMarker)
+            if (t is PlanningMarker)
+            {
+                Log.Message($"[LOS] SelectableByMapClick called for PlanningMarker at {t.Position}, fogged={t.Position.Fogged(t.Map)}, result before={__result}");
                 __result = true;
+            }
         }
     }
 }
