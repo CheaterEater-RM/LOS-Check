@@ -11,9 +11,7 @@ namespace LOSOverlay.Patches
         static IEnumerable<Gizmo> Postfix(IEnumerable<Gizmo> __result, Pawn __instance)
         {
             foreach (var gizmo in __result) yield return gizmo;
-            if (__instance.IsColonistPlayerControlled && __instance.Drafted &&
-                __instance.equipment != null && __instance.equipment.Primary != null &&
-                __instance.equipment.Primary.def.IsRangedWeapon)
+            if (__instance.IsColonistPlayerControlled && __instance.Drafted)
             {
                 yield return new Gizmo_LOSMode(__instance);
             }

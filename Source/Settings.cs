@@ -1,11 +1,12 @@
-﻿using UnityEngine;
+using UnityEngine;
 using Verse;
 
 namespace LOSOverlay
 {
     public class LOSOverlay_Settings : ModSettings
     {
-        public int DefaultRange = 30;
+        public int DefaultRange = 50;
+        public int DefaultDefensiveRange = 50;
         public float OverlayOpacity = 0.35f;
         public bool ShowOnPawnSelect = false;
         public bool ShowOnTurretSelect = true;
@@ -13,7 +14,8 @@ namespace LOSOverlay
         public override void ExposeData()
         {
             base.ExposeData();
-            Scribe_Values.Look(ref DefaultRange, "DefaultRange", 30);
+            Scribe_Values.Look(ref DefaultRange, "DefaultRange", 50);
+            Scribe_Values.Look(ref DefaultDefensiveRange, "DefaultDefensiveRange", 50);
             Scribe_Values.Look(ref OverlayOpacity, "OverlayOpacity", 0.35f);
             Scribe_Values.Look(ref ShowOnPawnSelect, "ShowOnPawnSelect", false);
             Scribe_Values.Look(ref ShowOnTurretSelect, "ShowOnTurretSelect", true);
@@ -48,14 +50,21 @@ namespace LOSOverlay
         {
             var listing = new Listing_Standard();
             listing.Begin(inRect);
-            listing.Label($"Default overlay range: {Settings.DefaultRange}");
-            Settings.DefaultRange = (int)listing.Slider(Settings.DefaultRange, 10f, 60f);
+
+            listing.Label($"Default offensive range: {Settings.DefaultRange}");
+            Settings.DefaultRange = (int)listing.Slider(Settings.DefaultRange, 10f, 100f);
+
+            listing.Label($"Default defensive range: {Settings.DefaultDefensiveRange}");
+            Settings.DefaultDefensiveRange = (int)listing.Slider(Settings.DefaultDefensiveRange, 10f, 100f);
+
             listing.Label($"Overlay opacity: {Settings.OverlayOpacity:P0}");
             Settings.OverlayOpacity = listing.Slider(Settings.OverlayOpacity, 0.1f, 0.9f);
+
             listing.CheckboxLabeled("Show overlay on pawn select", ref Settings.ShowOnPawnSelect,
                 "Automatically show static LOS overlay when selecting a drafted pawn.");
             listing.CheckboxLabeled("Show overlay on turret select", ref Settings.ShowOnTurretSelect,
                 "Automatically show static LOS overlay when selecting a turret.");
+
             listing.End();
         }
     }

@@ -125,26 +125,36 @@ namespace LOSOverlay
 
         private int GetRange()
         {
-            if (_parent is Pawn pawn)
+            var dir = GetDirection(_parent);
+            int defaultRange = dir == OverlayDirection.Defensive
+                ? LOSOverlay_Mod.Settings.DefaultDefensiveRange
+                : LOSOverlay_Mod.Settings.DefaultRange;
+
+            // For offensive view, prefer the weapon's actual range if available.
+            if (dir == OverlayDirection.Offensive)
             {
-                var primary = pawn.equipment != null ? pawn.equipment.Primary : null;
-                if (primary != null && primary.def.Verbs != null && primary.def.Verbs.Count > 0)
+                if (_parent is Pawn pawn)
                 {
-                    float verbRange = primary.def.Verbs[0].range;
-                    if (verbRange > 0f) return Mathf.CeilToInt(verbRange);
+                    var primary = pawn.equipment?.Primary;
+                    if (primary?.def?.Verbs != null && primary.def.Verbs.Count > 0)
+                    {
+                        float verbRange = primary.def.Verbs[0].range;
+                        if (verbRange > 0f) return Mathf.CeilToInt(verbRange);
+                    }
+                }
+                if (_parent is Building_Turret turret)
+                {
+                    try
+                    {
+                        var verb = turret.AttackVerb;
+                        if (verb?.verbProps != null && verb.verbProps.range > 0f)
+                            return Mathf.CeilToInt(verb.verbProps.range);
+                    }
+                    catch { }
                 }
             }
-            if (_parent is Building_Turret turret)
-            {
-                try
-                {
-                    var verb = turret.AttackVerb;
-                    if (verb != null && verb.verbProps != null && verb.verbProps.range > 0f)
-                        return Mathf.CeilToInt(verb.verbProps.range);
-                }
-                catch { }
-            }
-            return LOSOverlay_Mod.Settings.DefaultRange;
+
+            return defaultRange;
         }
 
         private static Dictionary<IntVec3, CellLOSResult> GetOrCreateCache(Thing thing)

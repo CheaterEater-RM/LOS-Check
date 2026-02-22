@@ -10,6 +10,14 @@ namespace LOSOverlay
     // Wall / Cover / Open — designation-based, supports drag-to-place
     // =========================================================================
 
+    internal static class LOSTex
+    {
+        public static readonly Texture2D Wall    = ContentFinder<Texture2D>.Get("UI/Designators/LOSWall");
+        public static readonly Texture2D Cover   = ContentFinder<Texture2D>.Get("UI/Designators/LOSCover");
+        public static readonly Texture2D Open    = ContentFinder<Texture2D>.Get("UI/Designators/LOSOpen");
+        public static readonly Texture2D Observer = ContentFinder<Texture2D>.Get("UI/Designators/LOSObserver");
+    }
+
     public abstract class Designator_LOSPlanDesignation : Designator
     {
         protected abstract DesignationDef TargetDesignationDef { get; }
@@ -90,7 +98,7 @@ namespace LOSOverlay
         {
             defaultLabel = "Plan Wall";
             defaultDesc = "Place hypothetical walls that block LOS.\nDrag to place lines or rectangles.";
-            icon = ContentFinder<Texture2D>.Get("UI/Designators/LOSWall");
+            icon = LOSTex.Wall;
         }
 
         public override AcceptanceReport CanDesignateCell(IntVec3 loc)
@@ -112,7 +120,7 @@ namespace LOSOverlay
         {
             defaultLabel = "Plan Cover";
             defaultDesc = "Place hypothetical cover (sandbag-equivalent).\nDrag to place lines or rectangles.";
-            icon = ContentFinder<Texture2D>.Get("UI/Designators/LOSCover");
+            icon = LOSTex.Cover;
         }
     }
 
@@ -124,7 +132,7 @@ namespace LOSOverlay
         {
             defaultLabel = "Plan Opening";
             defaultDesc = "Mark existing walls as open for LOS calculations.\nDrag to place lines.";
-            icon = ContentFinder<Texture2D>.Get("UI/Designators/LOSOpen");
+            icon = LOSTex.Open;
         }
 
         public override AcceptanceReport CanDesignateCell(IntVec3 loc)
@@ -148,7 +156,7 @@ namespace LOSOverlay
         {
             defaultLabel = "LOS Observer";
             defaultDesc = "Place an observer point. Select it to view LOS overlay.";
-            icon = ContentFinder<Texture2D>.Get("UI/Designators/LOSObserver");
+            icon = LOSTex.Observer;
             soundSucceeded = SoundDefOf.Designate_PlanAdd;
             useMouseIcon = true;
         }

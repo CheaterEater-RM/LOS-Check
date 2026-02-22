@@ -1,9 +1,10 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Defs>
   <DesignationDef>
     <defName>LOSOverlay_PlanWall</defName>
     <label>LOS plan wall</label>
     <description>A hypothetical wall for LOS planning.</description>
+    <targetType>Cell</targetType>
     <texturePath>UI/Designators/LOSWall</texturePath>
     <dragHighlightColor>(0.6, 0.3, 0.1, 0.5)</dragHighlightColor>
     <hasDesignateAllFloatMenuOption>false</hasDesignateAllFloatMenuOption>
@@ -14,6 +15,7 @@
     <defName>LOSOverlay_PlanCover</defName>
     <label>LOS plan cover</label>
     <description>Hypothetical cover for LOS planning.</description>
+    <targetType>Cell</targetType>
     <texturePath>UI/Designators/LOSCover</texturePath>
     <dragHighlightColor>(0.8, 0.7, 0.2, 0.5)</dragHighlightColor>
     <hasDesignateAllFloatMenuOption>false</hasDesignateAllFloatMenuOption>
@@ -24,6 +26,7 @@
     <defName>LOSOverlay_PlanOpen</defName>
     <label>LOS plan opening</label>
     <description>Marks an existing wall as open for LOS.</description>
+    <targetType>Cell</targetType>
     <texturePath>UI/Designators/LOSOpen</texturePath>
     <dragHighlightColor>(0.2, 0.9, 0.2, 0.5)</dragHighlightColor>
     <hasDesignateAllFloatMenuOption>false</hasDesignateAllFloatMenuOption>
