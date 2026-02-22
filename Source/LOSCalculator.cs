@@ -111,9 +111,12 @@ namespace LOSOverlay
                 // Target cell is allowed through regardless of blocking
                 if (cell == target) return true;
 
-                // Hypothetical open space overrides real wall — check hypo first
+                // Hypothetical open space overrides everything — check first
                 if (hypo != null && hypo.OpenSpaces.Contains(cell)) continue;
                 if (hypo != null && hypo.HypotheticalWalls.Contains(cell)) return false;
+
+                // Fogged cells block unless designated open above
+                if (cell.Fogged(map)) return false;
 
                 // Fall back to real map
                 if (!cell.CanBeSeenOverFast(map)) return false;
@@ -175,15 +178,22 @@ namespace LOSOverlay
             if (!HypoBlocks(observer, map, hypo))
                 list.Add(observer);
 
-            // Cover-based lean sources (cardinal neighbours that have cover)
-            for (int j = 0; j < 4; j++)
+            // Cover-based lean sources: lean onto adjacent sandbags/rocks etc.
+            // Matches vanilla exactly, but we additionally require the observer's
+            // own cell to be open — a pawn inside a wall can't step to a cover
+            // object outside it. This prevents phantom lean sources appearing
+            // through tunnel walls that happen to have trees outside them.
+            if (!HypoBlocks(observer, map, hypo))
             {
-                if (blocked[j]) continue;
-                bool inDirection = (j == 0 && east) || (j == 1 && north) || (j == 2 && west) || (j == 3 && south);
-                if (!inDirection) continue;
-                var adj = observer + GenAdj.AdjacentCells[j];
-                if (adj.InBounds(map) && adj.GetCover(map) != null)
-                    list.Add(adj);
+                for (int j = 0; j < 4; j++)
+                {
+                    if (blocked[j]) continue; // adjacent cell itself is blocked
+                    bool inDirection = (j == 0 && east) || (j == 1 && north) || (j == 2 && west) || (j == 3 && south);
+                    if (!inDirection) continue;
+                    var adj = observer + GenAdj.AdjacentCells[j];
+                    if (adj.InBounds(map) && adj.GetCover(map) != null)
+                        list.Add(adj);
+                }
             }
         }
 
@@ -195,6 +205,9 @@ namespace LOSOverlay
                 if (hypo.OpenSpaces.Contains(cell)) return false;
                 if (hypo.HypotheticalWalls.Contains(cell)) return true;
             }
+            // Fogged cells with no designation are treated as blocking —
+            // we don't know what's there, so assume walls.
+            if (cell.Fogged(map)) return true;
             return !cell.CanBeSeenOverFast(map);
         }
 
@@ -206,6 +219,8 @@ namespace LOSOverlay
                 if (hypo.HypotheticalWalls.Contains(cell)) return false;
                 if (hypo.OpenSpaces.Contains(cell)) return true;
             }
+            // Fogged cells are inaccessible as targets unless explicitly opened.
+            if (cell.Fogged(map)) return false;
             var edifice = cell.GetEdifice(map);
             return edifice == null || !LOSOverlay_Mod.CoverProvider.BlocksLOS(edifice);
         }

@@ -106,9 +106,8 @@ namespace LOSOverlay
         {
             var baseResult = base.CanDesignateCell(loc);
             if (!baseResult.Accepted) return baseResult;
-            var edifice = loc.GetEdifice(Find.CurrentMap);
-            if (edifice != null && LOSOverlay_Mod.CoverProvider.BlocksLOS(edifice))
-                return AcceptanceReport.WasRejected; // silent — already a real wall
+            // Fogged cells and cells with existing walls are both fine —
+            // designations override whatever's there.
             return true;
         }
     }
@@ -140,6 +139,8 @@ namespace LOSOverlay
         {
             var baseResult = base.CanDesignateCell(loc);
             if (!baseResult.Accepted) return baseResult;
+            // Fogged cells are treated as walls for planning purposes — allow opening them.
+            if (loc.Fogged(Find.CurrentMap)) return true;
             var edifice = loc.GetEdifice(Find.CurrentMap);
             if (edifice == null || !LOSOverlay_Mod.CoverProvider.BlocksLOS(edifice))
                 return "No wall or obstacle here to open.";
