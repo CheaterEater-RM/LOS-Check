@@ -12,5 +12,12 @@ namespace LOSOverlay
         bool DefBlocksLOS(ThingDef def);
         float HypotheticalCoverValue { get; }
         float HypotheticalWallValue { get; }
+
+        /// <summary>
+        /// Compute the effective cover between shooter and defender.
+        /// Vanilla uses angle-based adjacent-cell logic; CE walks the LOS path.
+        /// </summary>
+        float ComputeCoverBetween(IntVec3 shooterPos, IntVec3 defenderPos, Map map,
+            HypotheticalMapState hypo);
     }
 }

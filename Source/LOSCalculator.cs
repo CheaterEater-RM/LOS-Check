@@ -71,8 +71,8 @@ namespace LOSOverlay
             if (hasLOS)
             {
                 result.CoverValue = direction == OverlayDirection.Offensive
-                    ? ComputeCover(observer, target, map, hypo, provider)
-                    : ComputeCover(target, observer, map, hypo, provider);
+                    ? provider.ComputeCoverBetween(observer, target, map, hypo)
+                    : provider.ComputeCoverBetween(target, observer, map, hypo);
                 result.NormalizedCover = provider.NormalizeCoverValue(result.CoverValue);
             }
             return result;
@@ -238,50 +238,8 @@ namespace LOSOverlay
             return edifice == null || !LOSOverlay_Mod.CoverProvider.BlocksLOS(edifice);
         }
 
-        private static float ComputeCover(IntVec3 shooterPos, IntVec3 defenderPos, Map map,
-            HypotheticalMapState hypo, ICoverProvider provider)
-        {
-            float bestCover = 0f;
-            float shooterAngle = (shooterPos - defenderPos).AngleFlat;
-
-            for (int i = 0; i < 8; i++)
-            {
-                IntVec3 adjCell = defenderPos + GenAdj.AdjacentCells[i];
-                if (!adjCell.InBounds(map)) continue;
-                if (adjCell == shooterPos) continue;
-
-                float rawCover;
-                if (hypo != null)
-                    rawCover = hypo.GetCoverValueAt(adjCell);
-                else
-                {
-                    var cover = adjCell.GetCover(map);
-                    if (cover == null) continue;
-                    rawCover = provider.GetCoverValue(cover);
-                }
-                if (rawCover <= 0f) continue;
-
-                float coverAngle = (adjCell - defenderPos).AngleFlat;
-                float angleDiff  = GenGeo.AngleDifferenceBetween(coverAngle, shooterAngle);
-                if (!defenderPos.AdjacentToCardinal(adjCell)) angleDiff *= 1.75f;
-
-                float angleMult;
-                if      (angleDiff < 15f) angleMult = 1.0f;
-                else if (angleDiff < 27f) angleMult = 0.8f;
-                else if (angleDiff < 40f) angleMult = 0.6f;
-                else if (angleDiff < 52f) angleMult = 0.4f;
-                else if (angleDiff < 65f) angleMult = 0.2f;
-                else continue;
-
-                float effectiveCover = rawCover * angleMult;
-                float dist = (shooterPos - adjCell).LengthHorizontal;
-                if      (dist < 1.9f) effectiveCover *= 0.3333f;
-                else if (dist < 2.9f) effectiveCover *= 0.66666f;
-
-                if (effectiveCover > bestCover) bestCover = effectiveCover;
-            }
-            return bestCover;
-        }
+        // Cover computation is now delegated to ICoverProvider.ComputeCoverBetween().
+        // Vanilla uses angle-based adjacent-cell logic; CE walks the LOS path.
 
         public static void ComputeCombinedLOS(List<IntVec3> observers, Map map, LOSMode mode,
             int range, OverlayDirection direction, Dictionary<IntVec3, CellLOSResult> combined)
