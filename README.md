@@ -1,17 +1,14 @@
 ﻿# LOS Overlay & Cover Planner
 
-Line-of-sight visualization with cover color-coding and bunker planning tools for RimWorld 1.6.
-
-A RimWorld 1.6 mod by CheaterEater.
+Line-of-sight visualization with cover color-coding and bunker planning tools for RimWorld. Built using AI tools.
 
 ## Features
 
 - **Three overlay modes**: Off, Static (direct LOS), Leaning (includes lean-around-corner)
 - **Offensive/Defensive views**: See cover targets have from you, or cover you have from each direction
-- **Cover color-coding**: Green (clear) to Red (heavy cover), matching vanilla angle-based cover algorithm
+- **Cover color-coding**: Green (clear) to Red (heavy cover)
 - **Pawn & turret gizmos**: Toggle overlay on drafted ranged pawns and player turrets
 - **Planning tools** (architect menu): Place observer markers, hypothetical walls, cover, and openings
-- **Drag-to-place**: Wall, cover, and opening markers support click-and-drag lines/rectangles
 - **Combined view**: See union coverage from all observer markers simultaneously
 - **Moving pawn tracking**: Overlay redraws as pawn moves to new cells
 - **Combat Extended support**: Auto-detected soft dependency, uses cover height system
@@ -19,7 +16,7 @@ A RimWorld 1.6 mod by CheaterEater.
 ## Installation
 
 1. Subscribe on Steam Workshop, or download and extract to your RimWorld Mods folder
-2. Enable Harmony and LOS Overlay & Cover Planner in the mod list
+2. Enable Harmony and LOS Check in the mod list
 3. Harmony must load before this mod
 
 ## Usage
@@ -27,7 +24,7 @@ A RimWorld 1.6 mod by CheaterEater.
 ### Quick start
 1. Draft a pawn with a ranged weapon and select them
 2. Click the "LOS: Off" gizmo to cycle through modes
-3. Click "View: Offensive/Defensive" to toggle perspective
+3. Right click to swap modes between offensive vs. defensive (outgoing vs. incoming fire)
 4. Green = clear shot, yellow = partial cover, red = heavy cover, dark grey = no LOS
 
 ### Planning mode
@@ -36,9 +33,6 @@ A RimWorld 1.6 mod by CheaterEater.
 3. Drag-place Plan Wall / Plan Cover / Plan Opening markers to test layouts
 4. Select an observer to see its LOS overlay
 5. Use Combined LOS View to see coverage from all observers at once
-
-### Cover mechanics note
-Cover in RimWorld (vanilla and CE) only comes from objects in the 8 cells directly adjacent to the defender. A sandbag 2+ tiles away provides zero cover mechanically. This is intentional game design.
 
 ## Compatibility
 
@@ -54,4 +48,4 @@ Cover in RimWorld (vanilla and CE) only comes from objects in the 8 cells direct
 
 ## License
 
-MIT
+MIT for the mod. Textures are licensed under CC BY 3.0 from game-icons.net and have their own license.
