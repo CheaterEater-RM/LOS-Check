@@ -10,11 +10,12 @@ namespace LOSOverlay
     // Wall / Cover / Open — designation-based, supports drag-to-place
     // =========================================================================
 
+    [StaticConstructorOnStartup]
     internal static class LOSTex
     {
-        public static readonly Texture2D Wall    = ContentFinder<Texture2D>.Get("UI/Designators/LOSWall");
-        public static readonly Texture2D Cover   = ContentFinder<Texture2D>.Get("UI/Designators/LOSCover");
-        public static readonly Texture2D Open    = ContentFinder<Texture2D>.Get("UI/Designators/LOSOpen");
+        public static readonly Texture2D Wall     = ContentFinder<Texture2D>.Get("UI/Designators/LOSWall");
+        public static readonly Texture2D Cover    = ContentFinder<Texture2D>.Get("UI/Designators/LOSCover");
+        public static readonly Texture2D Open     = ContentFinder<Texture2D>.Get("UI/Designators/LOSOpen");
         public static readonly Texture2D Observer = ContentFinder<Texture2D>.Get("UI/Designators/LOSObserver");
     }
 

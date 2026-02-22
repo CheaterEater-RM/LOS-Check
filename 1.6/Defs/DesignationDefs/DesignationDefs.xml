@@ -6,8 +6,6 @@
     <description>A hypothetical wall for LOS planning.</description>
     <targetType>Cell</targetType>
     <texturePath>UI/Designators/LOSWall</texturePath>
-    <dragHighlightColor>(0.6, 0.3, 0.1, 0.5)</dragHighlightColor>
-    <hasDesignateAllFloatMenuOption>false</hasDesignateAllFloatMenuOption>
     <designateCancelable>true</designateCancelable>
   </DesignationDef>
 
@@ -17,8 +15,6 @@
     <description>Hypothetical cover for LOS planning.</description>
     <targetType>Cell</targetType>
     <texturePath>UI/Designators/LOSCover</texturePath>
-    <dragHighlightColor>(0.8, 0.7, 0.2, 0.5)</dragHighlightColor>
-    <hasDesignateAllFloatMenuOption>false</hasDesignateAllFloatMenuOption>
     <designateCancelable>true</designateCancelable>
   </DesignationDef>
 
@@ -28,8 +24,6 @@
     <description>Marks an existing wall as open for LOS.</description>
     <targetType>Cell</targetType>
     <texturePath>UI/Designators/LOSOpen</texturePath>
-    <dragHighlightColor>(0.2, 0.9, 0.2, 0.5)</dragHighlightColor>
-    <hasDesignateAllFloatMenuOption>false</hasDesignateAllFloatMenuOption>
     <designateCancelable>true</designateCancelable>
   </DesignationDef>
 </Defs>
