@@ -90,29 +90,69 @@ namespace LOSOverlay
 
                 result.HasLOS = true;
 
-                // Pick the best shooting position for cover:
-                //   Offensive: minimize target cover (best shot for us)
-                //   Defensive: maximize our cover (best protection for us)
-                float bestCover = direction == OverlayDirection.Offensive
-                    ? float.MaxValue : float.MinValue;
-
-                for (int i = 0; i < _validLeanSources.Count; i++)
+                // Cover computation differs by provider:
+                //
+                // CE (path-based): cover = tallest thing along the LOS ray.
+                //   The ray origin matters, so we evaluate from each lean source
+                //   and pick the best.
+                //
+                // Vanilla (adjacent-cell): cover = what's adjacent to the DEFENDER,
+                //   with angle/distance from the SHOOTER.
+                //   - Offensive: defender = target, shooter varies by lean source →
+                //     evaluate per lean source, pick the best (least cover on target).
+                //   - Defensive: defender = observer (pawn's home cell, where their
+                //     body is). The pawn peeks out to shoot but cover is still
+                //     checked around their real position. The shooter is at target.
+                //     This is the same regardless of which lean source was used,
+                //     so we compute it once.
+                if (LOSOverlay_Mod.CEActive)
                 {
-                    var src = _validLeanSources[i];
-                    float cover = direction == OverlayDirection.Offensive
-                        ? provider.ComputeCoverBetween(src, target, map, hypo)
-                        : provider.ComputeCoverBetween(target, src, map, hypo);
+                    // CE: evaluate cover along each lean source's ray
+                    float bestCover = direction == OverlayDirection.Offensive
+                        ? float.MaxValue : float.MinValue;
 
-                    bool isBetter = direction == OverlayDirection.Offensive
-                        ? cover < bestCover
-                        : cover > bestCover;
+                    for (int i = 0; i < _validLeanSources.Count; i++)
+                    {
+                        var src = _validLeanSources[i];
+                        float cover = direction == OverlayDirection.Offensive
+                            ? provider.ComputeCoverBetween(src, target, map, hypo)
+                            : provider.ComputeCoverBetween(target, src, map, hypo);
 
-                    if (isBetter)
-                        bestCover = cover;
+                        bool isBetter = direction == OverlayDirection.Offensive
+                            ? cover < bestCover
+                            : cover > bestCover;
+
+                        if (isBetter)
+                            bestCover = cover;
+                    }
+
+                    result.CoverValue = bestCover == float.MaxValue || bestCover == float.MinValue
+                        ? 0f : bestCover;
                 }
-
-                result.CoverValue = bestCover == float.MaxValue || bestCover == float.MinValue
-                    ? 0f : bestCover;
+                else
+                {
+                    // Vanilla: adjacent-cell cover around the defender
+                    if (direction == OverlayDirection.Offensive)
+                    {
+                        // Defender = target. Shooter = lean source (affects angle/distance).
+                        // Pick the lean source giving least cover on target.
+                        float bestCover = float.MaxValue;
+                        for (int i = 0; i < _validLeanSources.Count; i++)
+                        {
+                            float cover = provider.ComputeCoverBetween(_validLeanSources[i], target, map, hypo);
+                            if (cover < bestCover)
+                                bestCover = cover;
+                        }
+                        result.CoverValue = bestCover == float.MaxValue ? 0f : bestCover;
+                    }
+                    else
+                    {
+                        // Defender = observer (pawn's real cell). Shooter = target.
+                        // The pawn's cover is always around their home cell, regardless
+                        // of which lean source provided LOS.
+                        result.CoverValue = provider.ComputeCoverBetween(target, observer, map, hypo);
+                    }
+                }
             }
             return result;
         }

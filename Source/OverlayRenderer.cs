@@ -7,12 +7,13 @@ namespace LOSOverlay
     [StaticConstructorOnStartup]
     public static class OverlayRenderer
     {
-        private static readonly Color COLOR_CLEAR     = new Color(0.0f, 0.8f, 0.0f);
-        private static readonly Color COLOR_LOW       = new Color(0.6f, 0.8f, 0.0f);
-        private static readonly Color COLOR_MODERATE  = new Color(1.0f, 0.9f, 0.0f);
-        private static readonly Color COLOR_GOOD      = new Color(1.0f, 0.5f, 0.0f);
-        private static readonly Color COLOR_HIGH      = new Color(0.9f, 0.1f, 0.1f);
-        private static readonly Color COLOR_NO_LOS    = new Color(0.15f, 0.15f, 0.15f);
+        // 5 discrete color bands — no gradients, what you configure is what you see.
+        private static readonly Color COLOR_NONE      = new Color(0.0f, 0.8f, 0.0f);   // green
+        private static readonly Color COLOR_LOW       = new Color(0.6f, 0.8f, 0.0f);   // yellow-green
+        private static readonly Color COLOR_MODERATE  = new Color(1.0f, 0.9f, 0.0f);   // yellow
+        private static readonly Color COLOR_HIGH      = new Color(1.0f, 0.5f, 0.0f);   // orange
+        private static readonly Color COLOR_EXTREME   = new Color(0.9f, 0.1f, 0.1f);   // red
+        private static readonly Color COLOR_NO_LOS    = new Color(0.15f, 0.15f, 0.15f); // dark grey
 
         private static readonly Dictionary<int, Material> _materialCache = new Dictionary<int, Material>();
         private static Dictionary<IntVec3, CellLOSResult> _currentResults = new Dictionary<IntVec3, CellLOSResult>();
@@ -78,18 +79,17 @@ namespace LOSOverlay
         }
 
         /// <summary>
-        /// Map a raw cover value to a color using the configurable thresholds.
-        /// For CE, rawCover is in meters (fillPercent × 1.75).
-        /// For vanilla, rawCover is the cover percentage (0–1).
-        /// The thresholds are set per-mode in settings.
+        /// Map a raw cover value to a flat color band using configurable thresholds.
+        /// No gradients — each band is a single solid color.
+        ///
+        /// For vanilla: rawCover is the cover percentage (0–1).
+        /// For CE: rawCover is in cell-height units, converted to meters here.
         /// </summary>
         public static Color GetCoverColor(float rawCover)
         {
             float t1, t2, t3, t4;
             if (LOSOverlay_Mod.CEActive)
             {
-                // CE: raw value is in cell-height units (fillPercent).
-                // Convert to meters for threshold comparison.
                 float meters = rawCover * CECoverProvider.CE_METERS_PER_CELL;
                 t1 = LOSOverlay_Mod.Settings.CEThresh1;
                 t2 = LOSOverlay_Mod.Settings.CEThresh2;
@@ -108,20 +108,20 @@ namespace LOSOverlay
         }
 
         /// <summary>
-        /// 5-band color gradient with smooth lerping between thresholds.
-        ///   value ≤ t1 → green (clear)
-        ///   t1..t2     → green→yellow-green (low)
-        ///   t2..t3     → yellow-green→yellow (moderate)
-        ///   t3..t4     → yellow→orange (good)
-        ///   value > t4 → orange→red (high)
+        /// 5 flat color bands with hard cutoffs.
+        ///   value &lt;= t1 → green   (no cover)
+        ///   value &lt;= t2 → yellow-green (low)
+        ///   value &lt;= t3 → yellow  (moderate)
+        ///   value &lt;= t4 → orange  (high)
+        ///   value &gt;  t4 → red     (extreme)
         /// </summary>
         private static Color ColorFromThresholds(float value, float t1, float t2, float t3, float t4)
         {
-            if (value <= t1) return COLOR_CLEAR;
-            if (value <= t2) return Color.Lerp(COLOR_CLEAR, COLOR_LOW, (value - t1) / (t2 - t1));
-            if (value <= t3) return Color.Lerp(COLOR_LOW, COLOR_MODERATE, (value - t2) / (t3 - t2));
-            if (value <= t4) return Color.Lerp(COLOR_MODERATE, COLOR_GOOD, (value - t3) / (t4 - t3));
-            return Color.Lerp(COLOR_GOOD, COLOR_HIGH, Mathf.Clamp01((value - t4) / (t4 * 0.35f)));
+            if (value <= t1) return COLOR_NONE;
+            if (value <= t2) return COLOR_LOW;
+            if (value <= t3) return COLOR_MODERATE;
+            if (value <= t4) return COLOR_HIGH;
+            return COLOR_EXTREME;
         }
 
         public static string GetCellTooltip(IntVec3 cell)
