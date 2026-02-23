@@ -13,7 +13,6 @@ namespace LOSOverlay
     {
         public bool HasLOS;
         public float CoverValue;
-        public float NormalizedCover;
     }
 
     public static class LOSCalculator
@@ -64,7 +63,6 @@ namespace LOSOverlay
                     result.CoverValue = direction == OverlayDirection.Offensive
                         ? provider.ComputeCoverBetween(observer, target, map, hypo)
                         : provider.ComputeCoverBetween(target, observer, map, hypo);
-                    result.NormalizedCover = provider.NormalizeCoverValue(result.CoverValue);
                 }
             }
             else // Leaning — compute cover from the actual shooting position(s)
@@ -115,7 +113,6 @@ namespace LOSOverlay
 
                 result.CoverValue = bestCover == float.MaxValue || bestCover == float.MinValue
                     ? 0f : bestCover;
-                result.NormalizedCover = provider.NormalizeCoverValue(result.CoverValue);
             }
             return result;
         }
@@ -278,7 +275,7 @@ namespace LOSOverlay
                     CellLOSResult existing;
                     if (combined.TryGetValue(kvp.Key, out existing))
                     {
-                        if (kvp.Value.NormalizedCover < existing.NormalizedCover)
+                        if (kvp.Value.CoverValue < existing.CoverValue)
                             combined[kvp.Key] = kvp.Value;
                     }
                     else combined[kvp.Key] = kvp.Value;

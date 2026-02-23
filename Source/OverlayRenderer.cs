@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using Verse;
 
@@ -20,6 +20,11 @@ namespace LOSOverlay
         private static Map _overlayMap;
 
         public static bool IsActive { get { return _overlayActive; } }
+
+        public static void ClearMaterialCache()
+        {
+            _materialCache.Clear();
+        }
 
         public static void SetOverlayData(Dictionary<IntVec3, CellLOSResult> results, Map map)
         {
@@ -45,7 +50,7 @@ namespace LOSOverlay
             {
                 if (!kvp.Key.InBounds(_overlayMap)) continue;
                 Color color = kvp.Value.HasLOS
-                    ? GetCoverColor(kvp.Value.NormalizedCover)
+                    ? GetCoverColor(kvp.Value.CoverValue)
                     : COLOR_NO_LOS;
                 color.a = opacity;
                 DrawCell(kvp.Key, color);
@@ -72,13 +77,51 @@ namespace LOSOverlay
             return mat;
         }
 
-        public static Color GetCoverColor(float normalized)
+        /// <summary>
+        /// Map a raw cover value to a color using the configurable thresholds.
+        /// For CE, rawCover is in meters (fillPercent × 1.75).
+        /// For vanilla, rawCover is the cover percentage (0–1).
+        /// The thresholds are set per-mode in settings.
+        /// </summary>
+        public static Color GetCoverColor(float rawCover)
         {
-            if (normalized <= 0.01f) return COLOR_CLEAR;
-            if (normalized <= 0.30f) return Color.Lerp(COLOR_CLEAR, COLOR_LOW, normalized / 0.30f);
-            if (normalized <= 0.50f) return Color.Lerp(COLOR_LOW, COLOR_MODERATE, (normalized - 0.30f) / 0.20f);
-            if (normalized <= 0.74f) return Color.Lerp(COLOR_MODERATE, COLOR_GOOD, (normalized - 0.50f) / 0.24f);
-            return Color.Lerp(COLOR_GOOD, COLOR_HIGH, Mathf.Clamp01((normalized - 0.74f) / 0.26f));
+            float t1, t2, t3, t4;
+            if (LOSOverlay_Mod.CEActive)
+            {
+                // CE: raw value is in cell-height units (fillPercent).
+                // Convert to meters for threshold comparison.
+                float meters = rawCover * CECoverProvider.CE_METERS_PER_CELL;
+                t1 = LOSOverlay_Mod.Settings.CEThresh1;
+                t2 = LOSOverlay_Mod.Settings.CEThresh2;
+                t3 = LOSOverlay_Mod.Settings.CEThresh3;
+                t4 = LOSOverlay_Mod.Settings.CEThresh4;
+                return ColorFromThresholds(meters, t1, t2, t3, t4);
+            }
+            else
+            {
+                t1 = LOSOverlay_Mod.Settings.VanillaThresh1;
+                t2 = LOSOverlay_Mod.Settings.VanillaThresh2;
+                t3 = LOSOverlay_Mod.Settings.VanillaThresh3;
+                t4 = LOSOverlay_Mod.Settings.VanillaThresh4;
+                return ColorFromThresholds(rawCover, t1, t2, t3, t4);
+            }
+        }
+
+        /// <summary>
+        /// 5-band color gradient with smooth lerping between thresholds.
+        ///   value ≤ t1 → green (clear)
+        ///   t1..t2     → green→yellow-green (low)
+        ///   t2..t3     → yellow-green→yellow (moderate)
+        ///   t3..t4     → yellow→orange (good)
+        ///   value > t4 → orange→red (high)
+        /// </summary>
+        private static Color ColorFromThresholds(float value, float t1, float t2, float t3, float t4)
+        {
+            if (value <= t1) return COLOR_CLEAR;
+            if (value <= t2) return Color.Lerp(COLOR_CLEAR, COLOR_LOW, (value - t1) / (t2 - t1));
+            if (value <= t3) return Color.Lerp(COLOR_LOW, COLOR_MODERATE, (value - t2) / (t3 - t2));
+            if (value <= t4) return Color.Lerp(COLOR_MODERATE, COLOR_GOOD, (value - t3) / (t4 - t3));
+            return Color.Lerp(COLOR_GOOD, COLOR_HIGH, Mathf.Clamp01((value - t4) / (t4 * 0.35f)));
         }
 
         public static string GetCellTooltip(IntVec3 cell)

@@ -22,8 +22,8 @@ namespace LOSOverlay
         private const float CE_WALL_HEIGHT = 2.0f;
         // CE normalisation cap — same as wall height since nothing is taller
         private const float CE_MAX_COVER_HEIGHT = CE_WALL_HEIGHT;
-        // CE_Utility.MetersPerCellHeight — for display only
-        private const float CE_METERS_PER_CELL = 1.75f;
+        // CE_Utility.MetersPerCellHeight — for display and threshold comparison
+        public const float CE_METERS_PER_CELL = 1.75f;
 
         // Hypothetical cover: typical sandbag fillPercent (0.55)
         public float HypotheticalCoverValue => 0.55f;
