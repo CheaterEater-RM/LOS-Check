@@ -19,6 +19,7 @@ namespace LOSOverlay
     public static class LOSCalculator
     {
         private static readonly List<IntVec3> _leanSources = new List<IntVec3>();
+        private static readonly List<IntVec3> _validLeanSources = new List<IntVec3>();
 
         public static void ComputeLOS(IntVec3 observerPos, Map map, LOSMode mode, int range,
             OverlayDirection direction, Dictionary<IntVec3, CellLOSResult> results)
@@ -55,24 +56,65 @@ namespace LOSOverlay
             var result = new CellLOSResult();
             if (!IsTargetAccessible(target, map, hypo)) return result;
 
-            bool hasLOS = false;
             if (mode == LOSMode.Static)
             {
-                hasLOS = HypoLOS(observer, target, map, hypo);
+                result.HasLOS = HypoLOS(observer, target, map, hypo);
+                if (result.HasLOS)
+                {
+                    result.CoverValue = direction == OverlayDirection.Offensive
+                        ? provider.ComputeCoverBetween(observer, target, map, hypo)
+                        : provider.ComputeCoverBetween(target, observer, map, hypo);
+                    result.NormalizedCover = provider.NormalizeCoverValue(result.CoverValue);
+                }
             }
-            else // Leaning
+            else // Leaning — compute cover from the actual shooting position(s)
             {
-                hasLOS = HypoLOS(observer, target, map, hypo);
-                if (!hasLOS)
-                    hasLOS = HypoLeanLOS(observer, target, map, hypo);
-            }
+                // Gather all valid shooting positions: direct + lean sources with LOS
+                _validLeanSources.Clear();
 
-            result.HasLOS = hasLOS;
-            if (hasLOS)
-            {
-                result.CoverValue = direction == OverlayDirection.Offensive
-                    ? ComputeCover(observer, target, map, hypo, provider)
-                    : ComputeCover(target, observer, map, hypo, provider);
+                if (HypoLOS(observer, target, map, hypo))
+                    _validLeanSources.Add(observer);
+
+                // Always check lean sources too — even with direct LOS, a lean
+                // position may give better cover, and the game will prefer it.
+                _leanSources.Clear();
+                GetHypoLeanSources(observer, target, map, hypo, _leanSources);
+                for (int i = 0; i < _leanSources.Count; i++)
+                {
+                    var src = _leanSources[i];
+                    if (src == observer) continue; // already checked above
+                    if (HypoLOS(src, target, map, hypo))
+                        _validLeanSources.Add(src);
+                }
+
+                if (_validLeanSources.Count == 0)
+                    return result;
+
+                result.HasLOS = true;
+
+                // Pick the best shooting position for cover:
+                //   Offensive: minimize target cover (best shot for us)
+                //   Defensive: maximize our cover (best protection for us)
+                float bestCover = direction == OverlayDirection.Offensive
+                    ? float.MaxValue : float.MinValue;
+
+                for (int i = 0; i < _validLeanSources.Count; i++)
+                {
+                    var src = _validLeanSources[i];
+                    float cover = direction == OverlayDirection.Offensive
+                        ? provider.ComputeCoverBetween(src, target, map, hypo)
+                        : provider.ComputeCoverBetween(target, src, map, hypo);
+
+                    bool isBetter = direction == OverlayDirection.Offensive
+                        ? cover < bestCover
+                        : cover > bestCover;
+
+                    if (isBetter)
+                        bestCover = cover;
+                }
+
+                result.CoverValue = bestCover == float.MaxValue || bestCover == float.MinValue
+                    ? 0f : bestCover;
                 result.NormalizedCover = provider.NormalizeCoverValue(result.CoverValue);
             }
             return result;
@@ -126,25 +168,6 @@ namespace LOSOverlay
                 if (!cell.CanBeSeenOverFast(map)) return false;
             }
             return true;
-        }
-
-        /// <summary>
-        /// Lean LOS using our own hypo-aware lean source computation.
-        /// ShootLeanUtility.LeanShootingSourcesFromTo reads CanBeSeenOver() from
-        /// the real map and is therefore blind to hypothetical walls and opens.
-        /// We replicate the lean logic using our CellBlocksLOS instead.
-        /// </summary>
-        private static bool HypoLeanLOS(IntVec3 observer, IntVec3 target, Map map, HypotheticalMapState hypo)
-        {
-            _leanSources.Clear();
-            GetHypoLeanSources(observer, target, map, hypo, _leanSources);
-            for (int i = 0; i < _leanSources.Count; i++)
-            {
-                var src = _leanSources[i];
-                if (src == observer) continue;
-                if (HypoLOS(src, target, map, hypo)) return true;
-            }
-            return false;
         }
 
         /// <summary>
@@ -238,50 +261,8 @@ namespace LOSOverlay
             return edifice == null || !LOSOverlay_Mod.CoverProvider.BlocksLOS(edifice);
         }
 
-        private static float ComputeCover(IntVec3 shooterPos, IntVec3 defenderPos, Map map,
-            HypotheticalMapState hypo, ICoverProvider provider)
-        {
-            float bestCover = 0f;
-            float shooterAngle = (shooterPos - defenderPos).AngleFlat;
-
-            for (int i = 0; i < 8; i++)
-            {
-                IntVec3 adjCell = defenderPos + GenAdj.AdjacentCells[i];
-                if (!adjCell.InBounds(map)) continue;
-                if (adjCell == shooterPos) continue;
-
-                float rawCover;
-                if (hypo != null)
-                    rawCover = hypo.GetCoverValueAt(adjCell);
-                else
-                {
-                    var cover = adjCell.GetCover(map);
-                    if (cover == null) continue;
-                    rawCover = provider.GetCoverValue(cover);
-                }
-                if (rawCover <= 0f) continue;
-
-                float coverAngle = (adjCell - defenderPos).AngleFlat;
-                float angleDiff  = GenGeo.AngleDifferenceBetween(coverAngle, shooterAngle);
-                if (!defenderPos.AdjacentToCardinal(adjCell)) angleDiff *= 1.75f;
-
-                float angleMult;
-                if      (angleDiff < 15f) angleMult = 1.0f;
-                else if (angleDiff < 27f) angleMult = 0.8f;
-                else if (angleDiff < 40f) angleMult = 0.6f;
-                else if (angleDiff < 52f) angleMult = 0.4f;
-                else if (angleDiff < 65f) angleMult = 0.2f;
-                else continue;
-
-                float effectiveCover = rawCover * angleMult;
-                float dist = (shooterPos - adjCell).LengthHorizontal;
-                if      (dist < 1.9f) effectiveCover *= 0.3333f;
-                else if (dist < 2.9f) effectiveCover *= 0.66666f;
-
-                if (effectiveCover > bestCover) bestCover = effectiveCover;
-            }
-            return bestCover;
-        }
+        // Cover computation is now delegated to ICoverProvider.ComputeCoverBetween().
+        // Vanilla uses angle-based adjacent-cell logic; CE walks the LOS path.
 
         public static void ComputeCombinedLOS(List<IntVec3> observers, Map map, LOSMode mode,
             int range, OverlayDirection direction, Dictionary<IntVec3, CellLOSResult> combined)
