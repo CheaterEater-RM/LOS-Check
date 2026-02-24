@@ -215,6 +215,37 @@ namespace LOSOverlay
         }
 
         /// <summary>
+        /// Recompute and redisplay whichever overlay is currently active:
+        /// combined view (all observer markers) or the single selected thing.
+        /// Called when the hypothetical map state changes (designation placed/removed).
+        /// </summary>
+        public static void RefreshActiveOverlay(Map map, Thing currentSelected)
+        {
+            var hypo = map?.GetComponent<HypotheticalMapState>();
+            if (hypo == null) return;
+
+            if (hypo.CombinedViewActive)
+            {
+                var observers = new List<IntVec3>(hypo.ObserverPositions);
+                if (observers.Count > 0)
+                {
+                    var results = new Dictionary<IntVec3, CellLOSResult>();
+                    LOSCalculator.ComputeCombinedLOS(observers, map, LOSMode.Static,
+                        LOSOverlay_Mod.Settings.DefaultRange, OverlayDirection.Offensive, results);
+                    OverlayRenderer.SetOverlayData(results, map);
+                }
+                else
+                {
+                    OverlayRenderer.ClearOverlay();
+                }
+                return;
+            }
+
+            if (currentSelected != null)
+                OnPositionChanged(currentSelected);
+        }
+
+        /// <summary>
         /// Remove cached data for things whose LOS mode is Off.
         /// Called periodically to prevent unbounded dictionary growth from
         /// destroyed things or things the player is no longer viewing.

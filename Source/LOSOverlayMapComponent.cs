@@ -2,6 +2,7 @@
 
 namespace LOSOverlay
 {
+
     public class LOSOverlayMapComponent : MapComponent
     {
         private Thing _lastSelected;
@@ -24,6 +25,14 @@ namespace LOSOverlay
             {
                 _lastPosition = current.Position;
                 Gizmo_LOSMode.OnPositionChanged(current);
+            }
+
+            // Recompute LOS whenever a planning designation was placed or removed.
+            var hypo = map.GetComponent<HypotheticalMapState>();
+            if (hypo != null && hypo.IsDirty)
+            {
+                hypo.ClearDirty();
+                Gizmo_LOSMode.RefreshActiveOverlay(map, _lastSelected);
             }
 
             OverlayRenderer.DrawOverlay();
