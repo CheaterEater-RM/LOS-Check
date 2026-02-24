@@ -7,7 +7,7 @@
     <li>1.6</li>
   </supportedVersions>
   <description>Line-of-sight overlay with cover color-coding for pawns, turrets, and planning positions.</description>
-
+  <modVersion>1.0</modVersion>
   <modDependencies>
     <li>
       <packageId>brrainz.harmony</packageId>
