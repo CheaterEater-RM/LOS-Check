@@ -13,12 +13,6 @@ Line-of-sight visualization with cover color-coding and bunker planning tools fo
 - **Moving pawn tracking**: Overlay redraws as pawn moves to new cells
 - **Combat Extended support**: Auto-detected soft dependency, uses cover height system
 
-## Installation
-
-1. Subscribe on Steam Workshop, or download and extract to your RimWorld Mods folder
-2. Enable Harmony and LOS Check in the mod list
-3. Harmony must load before this mod
-
 ## Usage
 
 ### Quick start
@@ -26,6 +20,7 @@ Line-of-sight visualization with cover color-coding and bunker planning tools fo
 2. Click the "LOS: Off" gizmo to cycle through modes
 3. Right click to swap modes between offensive vs. defensive (outgoing vs. incoming fire)
 4. Green = clear shot, yellow = partial cover, red = heavy cover, dark grey = no LOS
+5. Config options for color thresholds are in the mod menu
 
 ### Planning mode
 1. Open the LOS Planning tab in the architect menu
@@ -36,15 +31,13 @@ Line-of-sight visualization with cover color-coding and bunker planning tools fo
 
 ## Compatibility
 
-- RimWorld 1.6 (Odyssey)
-- Safe to add to existing saves
-- Compatible with Combat Extended (soft dependency)
+- RimWorld 1.6
+- Safe to add to or remove from existing saves
+- Compatible with Combat Extended
 
-## Building from Source
+## AI Disclosure
 
-1. Create RimWorld.Paths.props in the parent directory with your local paths
-2. Open Source\LOSOverlay.sln in Visual Studio
-3. Build (Ctrl+Shift+B) - output goes to 1.6\Assemblies\
+This mod was created with the help of AI tools. No art assets were created with AI.
 
 ## License
 
