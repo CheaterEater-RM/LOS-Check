@@ -23,6 +23,12 @@ namespace LOSOverlay
 
         public HypotheticalMapState(Map map) : base(map) { }
 
+        public override void FinalizeInit()
+        {
+            base.FinalizeInit();
+            RebuildFromDesignations();
+        }
+
         public void RebuildFromDesignations()
         {
             HypotheticalWalls.Clear();

@@ -36,7 +36,7 @@ namespace LOSOverlay
 
         public static void ClearOverlay()
         {
-            _currentResults.Clear();
+            _currentResults = new Dictionary<IntVec3, CellLOSResult>();
             _overlayActive = false;
             _overlayMap = null;
         }

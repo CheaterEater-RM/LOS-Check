@@ -13,6 +13,9 @@ namespace LOSOverlay
         private static readonly Dictionary<int, Dictionary<IntVec3, CellLOSResult>> _cachedResults =
             new Dictionary<int, Dictionary<IntVec3, CellLOSResult>>();
 
+        private static int _purgeCounter;
+        private const int PURGE_INTERVAL = 500; // every N selection changes
+
         private readonly Thing _parent;
 
         public Gizmo_LOSMode(Thing parent)
@@ -175,6 +178,13 @@ namespace LOSOverlay
         // ── Selection-change callbacks ────────────────────────────────────
         public static void OnSelectionChanged(Thing selected)
         {
+            // Periodically purge cached data for things no longer in LOS mode
+            if (++_purgeCounter >= PURGE_INTERVAL)
+            {
+                _purgeCounter = 0;
+                PurgeInactiveEntries();
+            }
+
             if (selected == null) { OverlayRenderer.ClearOverlay(); return; }
             var mode = GetMode(selected);
             if (mode != LOSMode.Off) { new Gizmo_LOSMode(selected).RefreshOverlay(); return; }
@@ -202,6 +212,27 @@ namespace LOSOverlay
         {
             _cachedResults.Clear(); _modeByThing.Clear(); _dirByThing.Clear();
             OverlayRenderer.ClearOverlay();
+        }
+
+        /// <summary>
+        /// Remove cached data for things whose LOS mode is Off.
+        /// Called periodically to prevent unbounded dictionary growth from
+        /// destroyed things or things the player is no longer viewing.
+        /// </summary>
+        private static void PurgeInactiveEntries()
+        {
+            var stale = new List<int>();
+            foreach (var kvp in _modeByThing)
+            {
+                if (kvp.Value == LOSMode.Off)
+                    stale.Add(kvp.Key);
+            }
+            foreach (int id in stale)
+            {
+                _modeByThing.Remove(id);
+                _dirByThing.Remove(id);
+                _cachedResults.Remove(id);
+            }
         }
 
         // ── GUI ───────────────────────────────────────────────────────────
