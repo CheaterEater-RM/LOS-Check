@@ -20,7 +20,7 @@ namespace LOSOverlay
             _parent = parent;
             var mode = GetMode(parent);
             defaultLabel = "LOS: " + mode.ToString();
-            defaultDesc = ModeDescription(mode);
+            defaultDesc = ModeDescription(mode, parent);
             icon = TexCommand.Attack;
             Order = -95f;
             action = () => { CycleMode(parent); RefreshOverlay(); };
@@ -84,27 +84,31 @@ namespace LOSOverlay
             if (thing != null) _dirByThing[thing.thingIDNumber] = dir;
         }
 
+        private static bool CanLean(Thing thing) => !(thing is Building_Turret);
+
         private static void CycleMode(Thing thing)
         {
             LOSMode current = GetMode(thing);
             LOSMode next;
             switch (current)
             {
-                case LOSMode.Off:     next = LOSMode.Static;  break;
-                case LOSMode.Static:  next = LOSMode.Leaning; break;
-                default:              next = LOSMode.Off;     break;
+                case LOSMode.Off:    next = LOSMode.Static;                              break;
+                case LOSMode.Static: next = CanLean(thing) ? LOSMode.Leaning : LOSMode.Off; break;
+                default:             next = LOSMode.Off;                                 break;
             }
             SetMode(thing, next);
         }
 
-        private static string ModeDescription(LOSMode mode)
+        private static string ModeDescription(LOSMode mode, Thing thing = null)
         {
             switch (mode)
             {
                 case LOSMode.Off:
                     return "LOS overlay off. Left-click to enable static mode.\nRight-click to change view direction.";
                 case LOSMode.Static:
-                    return "Static LOS from this position.\nGreen = clear, Yellow = partial cover, Red = heavy cover.\nLeft-click for leaning mode. Right-click for view direction.";
+                    return CanLean(thing)
+                        ? "Static LOS from this position.\nGreen = clear, Yellow = partial cover, Red = heavy cover.\nLeft-click for leaning mode. Right-click for view direction."
+                        : "Static LOS from this position.\nGreen = clear, Yellow = partial cover, Red = heavy cover.\nLeft-click to turn off. Right-click for view direction.";
                 case LOSMode.Leaning:
                     return "LOS including lean-around-corner positions.\nGreen = clear, Yellow = partial cover, Red = heavy cover.\nLeft-click to turn off. Right-click for view direction.";
                 default:
@@ -205,7 +209,7 @@ namespace LOSOverlay
         {
             var mode = GetMode(_parent);
             defaultLabel = "LOS: " + mode.ToString();
-            defaultDesc = ModeDescription(mode);
+            defaultDesc = ModeDescription(mode, _parent);
             return base.GizmoOnGUI(topLeft, maxWidth, parms);
         }
     }
