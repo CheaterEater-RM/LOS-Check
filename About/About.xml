@@ -2,7 +2,7 @@
 <ModMetaData>
   <name>LOS Check</name>
   <author>CheaterEater</author>
-  <packageId>CheaterEater.LOSOverlay</packageId>
+  <packageId>CheaterEater.LOSCheck</packageId>
   <supportedVersions>
     <li>1.6</li>
   </supportedVersions>
