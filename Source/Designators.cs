@@ -13,10 +13,15 @@ namespace LOSOverlay
     [StaticConstructorOnStartup]
     internal static class LOSTex
     {
-        public static readonly Texture2D Wall     = ContentFinder<Texture2D>.Get("UI/Designators/LOSWall");
-        public static readonly Texture2D Cover    = ContentFinder<Texture2D>.Get("UI/Designators/LOSCover");
-        public static readonly Texture2D Open     = ContentFinder<Texture2D>.Get("UI/Designators/LOSOpen");
-        public static readonly Texture2D Observer = ContentFinder<Texture2D>.Get("UI/Designators/LOSObserver");
+        public static readonly Texture2D Wall       = ContentFinder<Texture2D>.Get("UI/Designators/LOSWall");
+        public static readonly Texture2D Cover      = ContentFinder<Texture2D>.Get("UI/Designators/LOSCover");
+        public static readonly Texture2D Open       = ContentFinder<Texture2D>.Get("UI/Designators/LOSOpen");
+        public static readonly Texture2D Observer   = ContentFinder<Texture2D>.Get("UI/Designators/LOSObserver");
+        /// <summary>Optional distinct icon; falls back to the Cover icon if not provided.</summary>
+        public static readonly Texture2D CoverMap   =
+            ContentFinder<Texture2D>.Get("UI/Designators/LOSCoverMap", reportFailure: false) ?? Cover;
+        /// <summary>Show/hide toggle — reuses the vanilla zone-visibility icon.</summary>
+        public static readonly Texture2D ToggleVis  = ContentFinder<Texture2D>.Get("UI/Buttons/ShowZones");
     }
 
     public abstract class Designator_LOSPlanDesignation : Designator
@@ -314,6 +319,102 @@ namespace LOSOverlay
                 Messages.Message("Combined LOS from " + observers.Count + " observer(s).", MessageTypeDefOf.NeutralEvent, false);
             }
             else OverlayRenderer.ClearOverlay();
+        }
+    }
+
+    // =========================================================================
+    // Toggle planning visibility — hide without deleting
+    // =========================================================================
+
+    /// <summary>
+    /// Hides or reveals all LOS planning visuals (designation icons + observer markers)
+    /// without destroying them. The underlying data and LOS calculations are untouched.
+    /// </summary>
+    public class Designator_TogglePlanningVisibility : Designator
+    {
+        public Designator_TogglePlanningVisibility()
+        {
+            defaultLabel   = "Toggle Plan Visibility";
+            defaultDesc    = "Show or hide all LOS planning markers without deleting them.\n" +
+                             "Useful for checking what the map looks like now while keeping your plans for later.";
+            icon           = LOSTex.ToggleVis;
+            soundSucceeded = SoundDefOf.Click;
+            useMouseIcon   = false;
+        }
+
+        public override AcceptanceReport CanDesignateCell(IntVec3 loc) => false;
+
+        public override void ProcessInput(Event ev)
+        {
+            // Do NOT call base.ProcessInput — we are a toggle, not a cell-placement tool.
+            var map = Find.CurrentMap;
+            if (map == null) return;
+            var hypo = map.GetComponent<HypotheticalMapState>();
+            if (hypo == null) return;
+
+            hypo.PlanningHidden = !hypo.PlanningHidden;
+
+            Messages.Message(
+                hypo.PlanningHidden
+                    ? "LOS planning markers hidden."
+                    : "LOS planning markers visible.",
+                MessageTypeDefOf.NeutralEvent, historical: false);
+        }
+    }
+
+    // =========================================================================
+    // Terrain Cover Map — persistent overlay showing raw terrain cover values
+    // =========================================================================
+
+
+    /// <summary>
+    /// Toggles a persistent map-wide overlay that colours every non-fogged cell
+    /// by the inherent cover value of the terrain/structure sitting on it.
+    /// No shooter position or line-of-sight maths are involved; this is purely
+    /// "what cover does this cell's terrain offer a defender standing here?"
+    ///
+    /// The overlay stays active even when the designator is no longer selected,
+    /// and is toggled off by clicking the button a second time.
+    /// </summary>
+    public class Designator_ToggleCoverMap : Designator
+    {
+        // Instance field — each designator instance owns its own buffer, and it
+        // carries no stale data between maps because ComputeCoverMap (and the
+        // explicit Clear below) always reset it before filling.
+        private readonly Dictionary<IntVec3, CellLOSResult> _cache =
+            new Dictionary<IntVec3, CellLOSResult>();
+
+        public Designator_ToggleCoverMap()
+        {
+            defaultLabel = "Terrain Cover Map";
+            defaultDesc  = "Toggle a map-wide overlay showing the inherent cover value of every terrain cell.\n" +
+                           "Green = no cover, Yellow = partial, Red = heavy cover (walls).\n" +
+                           "No shooter position needed — this is pure per-cell terrain cover.";
+            icon         = LOSTex.CoverMap;
+            soundSucceeded = SoundDefOf.Click;
+            useMouseIcon = false;
+        }
+
+        // Never enters cell-placement mode.
+        public override AcceptanceReport CanDesignateCell(IntVec3 loc) { return false; }
+        public override void DesignateSingleCell(IntVec3 loc) { }
+
+        public override void ProcessInput(Event ev)
+        {
+            // Do NOT call base.ProcessInput — that would put the UI into
+            // "awaiting cell click" mode, which we don't want for a toggle.
+            if (OverlayRenderer.IsCoverMapActive)
+            {
+                OverlayRenderer.ClearCoverMap();
+            }
+            else
+            {
+                var map = Find.CurrentMap;
+                if (map == null) return;
+                _cache.Clear(); // ComputeCoverMap also clears, but be explicit.
+                LOSCalculator.ComputeCoverMap(map, _cache);
+                OverlayRenderer.SetCoverMapData(_cache, map);
+            }
         }
     }
 }

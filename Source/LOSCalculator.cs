@@ -322,5 +322,40 @@ namespace LOSOverlay
                 }
             }
         }
+
+        /// <summary>
+        /// Builds a terrain cover-value map for every non-fogged cell on the map.
+        /// Each cell's value is the inherent cover provided by its cover object, with
+        /// NO shooter-angle adjustment — this is purely the terrain's own cover rating.
+        /// HasLOS is always true (every visible cell is included).
+        /// </summary>
+        public static void ComputeCoverMap(Map map, Dictionary<IntVec3, CellLOSResult> results)
+        {
+            results.Clear();
+            if (map == null) return;
+            var provider = LOSOverlay_Mod.CoverProvider;
+
+            for (int x = 0; x < map.Size.x; x++)
+            {
+                for (int z = 0; z < map.Size.z; z++)
+                {
+                    var cell = new IntVec3(x, 0, z);
+                    if (cell.Fogged(map)) continue;
+
+                    var cover = cell.GetCover(map);
+                    if (cover != null && provider.BlocksLOS(cover))
+                    {
+                        // Full-fill impassable (wall, closed full-fill door, etc.).
+                        // HasLOS = false signals "can't shoot through this".
+                        results[cell] = new CellLOSResult { HasLOS = false, CoverValue = 0f };
+                    }
+                    else
+                    {
+                        float coverVal = (cover != null) ? provider.GetCoverValue(cover) : 0f;
+                        results[cell] = new CellLOSResult { HasLOS = true, CoverValue = coverVal };
+                    }
+                }
+            }
+        }
     }
 }

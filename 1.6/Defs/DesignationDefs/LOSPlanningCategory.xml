@@ -11,6 +11,8 @@
       <li>LOSOverlay.Designator_PlanOpen</li>
       <li>LOSOverlay.Designator_RemoveLOSPlanning</li>
       <li>LOSOverlay.Designator_CombinedView</li>
+      <li>LOSOverlay.Designator_ToggleCoverMap</li>
+      <li>LOSOverlay.Designator_TogglePlanningVisibility</li>
       <li>LOSOverlay.Designator_ClearAllPlanning</li>
     </specialDesignatorClasses>
   </DesignationCategoryDef>

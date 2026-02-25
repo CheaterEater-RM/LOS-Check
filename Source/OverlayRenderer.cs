@@ -20,7 +20,13 @@ namespace LOSOverlay
         private static bool _overlayActive;
         private static Map _overlayMap;
 
-        public static bool IsActive { get { return _overlayActive; } }
+        // ── Cover-map overlay (independent of LOS overlay) ────────────────
+        private static Dictionary<IntVec3, CellLOSResult> _coverMapResults = new Dictionary<IntVec3, CellLOSResult>();
+        private static bool _coverMapActive;
+        private static Map _coverMapMap;
+
+        public static bool IsActive        { get { return _overlayActive;  } }
+        public static bool IsCoverMapActive { get { return _coverMapActive; } }
 
         public static void ClearMaterialCache()
         {
@@ -39,6 +45,51 @@ namespace LOSOverlay
             _currentResults = new Dictionary<IntVec3, CellLOSResult>();
             _overlayActive = false;
             _overlayMap = null;
+        }
+
+        public static void SetCoverMapData(Dictionary<IntVec3, CellLOSResult> results, Map map)
+        {
+            _coverMapResults = results;
+            _coverMapMap = map;
+            _coverMapActive = results != null && results.Count > 0;
+        }
+
+        public static void ClearCoverMap()
+        {
+            _coverMapResults = new Dictionary<IntVec3, CellLOSResult>();
+            _coverMapActive = false;
+            _coverMapMap = null;
+        }
+
+        /// <summary>
+        /// Recompute the cover-map in-place using the map that was active when
+        /// it was first enabled. Called periodically to pick up terrain changes
+        /// (walls built/destroyed, doors opened, etc.).
+        /// </summary>
+        public static void RefreshCoverMap()
+        {
+            if (!_coverMapActive || _coverMapMap == null) return;
+            LOSCalculator.ComputeCoverMap(_coverMapMap, _coverMapResults);
+        }
+
+        /// <summary>Draw the terrain cover-map overlay (drawn before the LOS overlay so LOS sits on top).</summary>
+        public static void DrawCoverMap()
+        {
+            if (!_coverMapActive || _coverMapMap == null) return;
+            if (Find.CurrentMap != _coverMapMap) return;
+            float opacity = LOSOverlay_Mod.Settings.OverlayOpacity;
+
+            foreach (var kvp in _coverMapResults)
+            {
+                if (!kvp.Key.InBounds(_coverMapMap)) continue;
+                // HasLOS = false means the cell is impassable (wall / full-fill):
+                // render it dark gray so it's visually distinct from shootable cover.
+                Color color = kvp.Value.HasLOS
+                    ? GetCoverColor(kvp.Value.CoverValue)
+                    : COLOR_NO_LOS;
+                color.a = opacity;
+                DrawCell(kvp.Key, color);
+            }
         }
 
         public static void DrawOverlay()
@@ -127,11 +178,26 @@ namespace LOSOverlay
         public static string GetCellTooltip(IntVec3 cell)
         {
             CellLOSResult result;
-            if (!_overlayActive || !_currentResults.TryGetValue(cell, out result)) return null;
-            if (!result.HasLOS) return "No line of sight";
-            if (result.CoverValue <= 0.01f) return "Clear - no cover";
-            string coverLabel = LOSOverlay_Mod.CoverProvider.GetCoverLabel(result.CoverValue);
-            return coverLabel;
+
+            // LOS overlay takes priority — show LOS context first.
+            if (_overlayActive && _currentResults.TryGetValue(cell, out result))
+            {
+                if (!result.HasLOS) return "No line of sight";
+                if (result.CoverValue <= 0.01f) return "Clear - no cover";
+                return LOSOverlay_Mod.CoverProvider.GetCoverLabel(result.CoverValue);
+            }
+
+            // Fall through to cover-map if no LOS overlay for this cell.
+            // Guard map identity: _coverMapResults may hold cells from a different
+            // map whose coordinates overlap with the current map.
+            if (_coverMapActive && _coverMapMap == Find.CurrentMap && _coverMapResults.TryGetValue(cell, out result))
+            {
+                if (!result.HasLOS) return "Impassable - blocks line of sight";
+                if (result.CoverValue <= 0.01f) return "Terrain cover: none";
+                return "Terrain cover: " + LOSOverlay_Mod.CoverProvider.GetCoverLabel(result.CoverValue);
+            }
+
+            return null;
         }
     }
 }

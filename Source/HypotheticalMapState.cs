@@ -15,6 +15,12 @@ namespace LOSOverlay
         public HashSet<IntVec3> OpenSpaces = new HashSet<IntVec3>();
         public HashSet<IntVec3> ObserverPositions = new HashSet<IntVec3>();
         public bool CombinedViewActive = false;
+        /// <summary>
+        /// When true, all LOS planning visuals (designations + observer markers) are
+        /// hidden from view but NOT deleted — they are restored the moment this is toggled off.
+        /// LOS calculations are unaffected by this flag.
+        /// </summary>
+        public bool PlanningHidden = false;
 
         private bool _dirty = true;
         public bool IsDirty { get { return _dirty; } }
@@ -101,9 +107,14 @@ namespace LOSOverlay
             OpenSpaces.Clear();
             ObserverPositions.Clear();
             CombinedViewActive = false;
+            PlanningHidden = false;
             _dirty = true;
         }
 
-        public override void ExposeData() { base.ExposeData(); }
+        public override void ExposeData()
+        {
+            base.ExposeData();
+            Scribe_Values.Look(ref PlanningHidden, "planningHidden", false);
+        }
     }
 }

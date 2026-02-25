@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using RimWorld;
+using UnityEngine;
 using Verse;
 
 namespace LOSOverlay
@@ -47,6 +48,15 @@ namespace LOSOverlay
                 icon = TexCommand.ClearPrioritizedWork,
                 action = () => { if (!Destroyed) Destroy(); }
             };
+        }
+
+        // In RimWorld 1.6, Thing.Draw() was removed; DrawAt() is the correct
+        // protected virtual to override for suppressing rendering.
+        protected override void DrawAt(Vector3 drawLoc, bool flip = false)
+        {
+            var hypo = Map?.GetComponent<HypotheticalMapState>();
+            if (hypo != null && hypo.PlanningHidden) return;
+            base.DrawAt(drawLoc, flip);
         }
 
         public override string GetInspectString()

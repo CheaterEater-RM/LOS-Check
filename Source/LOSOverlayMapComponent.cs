@@ -8,6 +8,11 @@ namespace LOSOverlay
         private Thing _lastSelected;
         private IntVec3 _lastPosition = IntVec3.Invalid;
 
+        // Refresh the cover-map overlay every N ticks to pick up terrain changes.
+        // 300 ticks ≈ 5 real-seconds at 1× speed (60 ticks/s).
+        private const int COVER_MAP_REFRESH_INTERVAL = 300;
+        private int _coverMapTick;
+
         public LOSOverlayMapComponent(Map map) : base(map) { }
 
         public override void MapComponentUpdate()
@@ -35,13 +40,25 @@ namespace LOSOverlay
                 Gizmo_LOSMode.RefreshActiveOverlay(map, _lastSelected);
             }
 
+            OverlayRenderer.DrawCoverMap();
             OverlayRenderer.DrawOverlay();
+        }
+
+        public override void MapComponentTick()
+        {
+            base.MapComponentTick();
+            if (!OverlayRenderer.IsCoverMapActive) return;
+            if (++_coverMapTick >= COVER_MAP_REFRESH_INTERVAL)
+            {
+                _coverMapTick = 0;
+                OverlayRenderer.RefreshCoverMap();
+            }
         }
 
         public override void MapComponentOnGUI()
         {
             base.MapComponentOnGUI();
-            if (!OverlayRenderer.IsActive) return;
+            if (!OverlayRenderer.IsActive && !OverlayRenderer.IsCoverMapActive) return;
             var mouseCell = UI.MouseCell();
             var tooltip = OverlayRenderer.GetCellTooltip(mouseCell);
             if (tooltip != null)
