@@ -22,6 +22,8 @@ namespace LOSOverlay
             ContentFinder<Texture2D>.Get("UI/Designators/LOSCoverMap", reportFailure: false) ?? Cover;
         /// <summary>Show/hide toggle — reuses the vanilla zone-visibility icon.</summary>
         public static readonly Texture2D ToggleVis  = ContentFinder<Texture2D>.Get("UI/Buttons/ShowZones");
+        /// <summary>Cover overlay toggle icon for bottom-right corner.</summary>
+        public static readonly Texture2D CoverOverlay = ContentFinder<Texture2D>.Get("UI/Designators/ToggleCoverOverlay", reportFailure: false) ?? CoverMap;
     }
 
     public abstract class Designator_LOSPlanDesignation : Designator
@@ -390,7 +392,7 @@ namespace LOSOverlay
             defaultDesc  = "Toggle a map-wide overlay showing the inherent cover value of every terrain cell.\n" +
                            "Green = no cover, Yellow = partial, Red = heavy cover (walls).\n" +
                            "No shooter position needed — this is pure per-cell terrain cover.";
-            icon         = LOSTex.CoverMap;
+            icon         = LOSTex.CoverOverlay;
             soundSucceeded = SoundDefOf.Click;
             useMouseIcon = false;
         }

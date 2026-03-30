@@ -188,16 +188,7 @@ namespace LOSOverlay
             if (selected == null) { OverlayRenderer.ClearOverlay(); return; }
             var mode = GetMode(selected);
             if (mode != LOSMode.Off) { new Gizmo_LOSMode(selected).RefreshOverlay(); return; }
-
-            bool autoShow =
-                (selected is Pawn p && p.Drafted && LOSOverlay_Mod.Settings.ShowOnPawnSelect) ||
-                (selected is Building_Turret && LOSOverlay_Mod.Settings.ShowOnTurretSelect);
-            if (autoShow)
-            {
-                SetMode(selected, LOSMode.Static);
-                new Gizmo_LOSMode(selected).RefreshOverlay();
-            }
-            else OverlayRenderer.ClearOverlay();
+            OverlayRenderer.ClearOverlay();
         }
 
         public static void OnPositionChanged(Thing selected)

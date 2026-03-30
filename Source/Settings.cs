@@ -8,8 +8,7 @@ namespace LOSOverlay
         public int DefaultRange = 50;
         public int DefaultDefensiveRange = 50;
         public float OverlayOpacity = 0.35f;
-        public bool ShowOnPawnSelect = false;
-        public bool ShowOnTurretSelect = true;
+        public bool HideCoverMapButton = false;
 
         // --- Vanilla cover color thresholds (cover percentage, 0–1) ---
         // 5 flat color bands with hard cutoffs:
@@ -36,8 +35,7 @@ namespace LOSOverlay
             Scribe_Values.Look(ref DefaultRange, "DefaultRange", 50);
             Scribe_Values.Look(ref DefaultDefensiveRange, "DefaultDefensiveRange", 50);
             Scribe_Values.Look(ref OverlayOpacity, "OverlayOpacity", 0.35f);
-            Scribe_Values.Look(ref ShowOnPawnSelect, "ShowOnPawnSelect", false);
-            Scribe_Values.Look(ref ShowOnTurretSelect, "ShowOnTurretSelect", true);
+            Scribe_Values.Look(ref HideCoverMapButton, "HideCoverMapButton", false);
 
             Scribe_Values.Look(ref VanillaThresh1, "VanillaThresh1", 0.01f);
             Scribe_Values.Look(ref VanillaThresh2, "VanillaThresh2", 0.30f);
@@ -90,10 +88,8 @@ namespace LOSOverlay
             listing.Label($"Overlay opacity: {Settings.OverlayOpacity:P0}");
             Settings.OverlayOpacity = listing.Slider(Settings.OverlayOpacity, 0.1f, 0.9f);
 
-            listing.CheckboxLabeled("Show overlay on pawn select", ref Settings.ShowOnPawnSelect,
-                "Automatically show static LOS overlay when selecting a drafted pawn.");
-            listing.CheckboxLabeled("Show overlay on turret select", ref Settings.ShowOnTurretSelect,
-                "Automatically show static LOS overlay when selecting a turret.");
+            listing.CheckboxLabeled("Hide cover map button", ref Settings.HideCoverMapButton,
+                "Hide the cover map toggle button from the overlay controls.");
 
             listing.GapLine();
 

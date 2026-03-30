@@ -27,6 +27,7 @@ namespace LOSOverlay
 
         public static bool IsActive        { get { return _overlayActive;  } }
         public static bool IsCoverMapActive { get { return _coverMapActive; } }
+        public static Dictionary<IntVec3, CellLOSResult> CoverMapResults => _coverMapResults;
 
         public static void ClearMaterialCache()
         {

@@ -5,6 +5,46 @@ using Verse;
 
 namespace LOSOverlay.Patches
 {
+    // Add cover-map overlay toggle button to PlaySettings global controls.
+    [HarmonyPatch(typeof(PlaySettings), nameof(PlaySettings.DoPlaySettingsGlobalControls))]
+    public static class Patch_PlaySettings_CoverMapToggle
+    {
+        static void Postfix(WidgetRow row, bool worldView)
+        {
+            if (worldView || LOSOverlay_Mod.Settings.HideCoverMapButton) return;  // Only show on map view and if not hidden
+            
+            bool show = OverlayRenderer.IsCoverMapActive;
+            bool wasOn = show;
+            
+            row.ToggleableIcon(
+                ref show,
+                LOSTex.CoverOverlay,
+                "ShowCoverMapOverlay".Translate(),
+                SoundDefOf.Mouseover_ButtonToggle);
+            
+            // If state changed, sync with OverlayRenderer
+            if (show != wasOn)
+            {
+                var map = Find.CurrentMap;
+                if (map != null)
+                {
+                    if (show)
+                    {
+                        // Enable: compute and set cover map data
+                        var cache = new Dictionary<IntVec3, CellLOSResult>();
+                        LOSCalculator.ComputeCoverMap(map, cache);
+                        OverlayRenderer.SetCoverMapData(cache, map);
+                    }
+                    else
+                    {
+                        // Disable: clear cover map data
+                        OverlayRenderer.ClearCoverMap();
+                    }
+                }
+            }
+        }
+    }
+
     // Suppress drawing of our planning designations when the player hides them.
     //
     // In RimWorld 1.6, cell designations are batched via Graphics.DrawMeshInstanced
