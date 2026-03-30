@@ -22,9 +22,10 @@ namespace LOSOverlay
         {
             _parent = parent;
             var mode = GetMode(parent);
+            var dir = GetDirection(parent);
             defaultLabel = "LOS: " + mode.ToString();
             defaultDesc = ModeDescription(mode, parent);
-            icon = TexCommand.Attack;
+            icon = GetModeIcon(mode, dir);
             Order = -95f;
             action = () => { CycleMode(parent); RefreshOverlay(); };
         }
@@ -46,7 +47,7 @@ namespace LOSOverlay
                 yield return new FloatMenuOption(
                     "Offensive (cover targets have FROM you)",
                     offAction,
-                    (Texture2D)TexCommand.FireAtWill,
+                    LOSTex.Offensive ?? TexCommand.FireAtWill,
                     Color.white);
 
                 Action defAction = dir == OverlayDirection.Defensive ? null : (Action)(() =>
@@ -57,7 +58,7 @@ namespace LOSOverlay
                 yield return new FloatMenuOption(
                     "Defensive (cover YOU have from each threat)",
                     defAction,
-                    (Texture2D)TexCommand.DesirePower,
+                    LOSTex.Defensive ?? TexCommand.DesirePower,
                     Color.white);
             }
         }
@@ -85,6 +86,30 @@ namespace LOSOverlay
         public static void SetDirection(Thing thing, OverlayDirection dir)
         {
             if (thing != null) _dirByThing[thing.thingIDNumber] = dir;
+        }
+
+        /// <summary>Get the icon texture for a given LOS mode and direction.</summary>
+        private static Texture2D GetModeIcon(LOSMode mode, OverlayDirection dir)
+        {
+            if (mode == LOSMode.Off)
+            {
+                return dir == OverlayDirection.Offensive
+                    ? (LOSTex.LOSMode_Off_Offensive ?? TexCommand.Attack)
+                    : (LOSTex.LOSMode_Off_Defensive ?? TexCommand.Attack);
+            }
+            else if (mode == LOSMode.Static)
+            {
+                return dir == OverlayDirection.Offensive
+                    ? (LOSTex.LOSMode_Static_Offensive ?? TexCommand.Attack)
+                    : (LOSTex.LOSMode_Static_Defensive ?? TexCommand.Attack);
+            }
+            else if (mode == LOSMode.Leaning)
+            {
+                return dir == OverlayDirection.Offensive
+                    ? (LOSTex.LOSMode_Leaning_Offensive ?? TexCommand.Attack)
+                    : (LOSTex.LOSMode_Leaning_Defensive ?? TexCommand.Attack);
+            }
+            return TexCommand.Attack;
         }
 
         private static bool CanLean(Thing thing) => !(thing is Building_Turret);
@@ -261,8 +286,10 @@ namespace LOSOverlay
         public override GizmoResult GizmoOnGUI(Vector2 topLeft, float maxWidth, GizmoRenderParms parms)
         {
             var mode = GetMode(_parent);
+            var dir = GetDirection(_parent);
             defaultLabel = "LOS: " + mode.ToString();
             defaultDesc = ModeDescription(mode, _parent);
+            icon = GetModeIcon(mode, dir);
             return base.GizmoOnGUI(topLeft, maxWidth, parms);
         }
     }

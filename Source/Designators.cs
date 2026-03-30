@@ -24,6 +24,18 @@ namespace LOSOverlay
         public static readonly Texture2D ToggleVis  = ContentFinder<Texture2D>.Get("UI/Buttons/ShowZones");
         /// <summary>Cover overlay toggle icon for bottom-right corner.</summary>
         public static readonly Texture2D CoverOverlay = ContentFinder<Texture2D>.Get("UI/Designators/ToggleCoverOverlay", reportFailure: false) ?? CoverMap;
+
+        // --- Gizmo LOS mode icons (6 combinations: Off/Static/Leaning x Offensive/Defensive) ---
+        public static readonly Texture2D LOSMode_Off_Offensive = ContentFinder<Texture2D>.Get("UI/Designators/LOS_Off_Offensive", reportFailure: false);
+        public static readonly Texture2D LOSMode_Off_Defensive = ContentFinder<Texture2D>.Get("UI/Designators/LOS_Off_Defensive", reportFailure: false);
+        public static readonly Texture2D LOSMode_Static_Offensive = ContentFinder<Texture2D>.Get("UI/Designators/LOS_Static_Offensive", reportFailure: false);
+        public static readonly Texture2D LOSMode_Static_Defensive = ContentFinder<Texture2D>.Get("UI/Designators/LOS_Static_Defensive", reportFailure: false);
+        public static readonly Texture2D LOSMode_Leaning_Offensive = ContentFinder<Texture2D>.Get("UI/Designators/LOS_Leaning_Offensive", reportFailure: false);
+        public static readonly Texture2D LOSMode_Leaning_Defensive = ContentFinder<Texture2D>.Get("UI/Designators/LOS_Leaning_Defensive", reportFailure: false);
+        /// <summary>Right-click menu icon for offensive direction option.</summary>
+        public static readonly Texture2D Offensive = ContentFinder<Texture2D>.Get("UI/Designators/LOS_Offensive", reportFailure: false);
+        /// <summary>Right-click menu icon for defensive direction option.</summary>
+        public static readonly Texture2D Defensive = ContentFinder<Texture2D>.Get("UI/Designators/LOS_Defensive", reportFailure: false);
     }
 
     public abstract class Designator_LOSPlanDesignation : Designator
