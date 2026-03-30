@@ -23,7 +23,7 @@ namespace LOSOverlay
             _parent = parent;
             var mode = GetMode(parent);
             var dir = GetDirection(parent);
-            defaultLabel = "LOS: " + mode.ToString();
+            defaultLabel = "LOSGizmo_ModeLabel_Prefix".Translate() + mode.ToString();
             defaultDesc = ModeDescription(mode, parent);
             icon = GetModeIcon(mode, dir);
             Order = -95f;
@@ -45,7 +45,7 @@ namespace LOSOverlay
                     if (GetMode(_parent) != LOSMode.Off) RefreshOverlay();
                 });
                 yield return new FloatMenuOption(
-                    "Offensive (cover targets have FROM you)",
+                    "LOSGizmo_RightClick_Offensive".Translate(),
                     offAction,
                     LOSTex.Offensive ?? TexCommand.FireAtWill,
                     Color.white);
@@ -56,7 +56,7 @@ namespace LOSOverlay
                     if (GetMode(_parent) != LOSMode.Off) RefreshOverlay();
                 });
                 yield return new FloatMenuOption(
-                    "Defensive (cover YOU have from each threat)",
+                    "LOSGizmo_RightClick_Defensive".Translate(),
                     defAction,
                     LOSTex.Defensive ?? TexCommand.DesirePower,
                     Color.white);
@@ -132,13 +132,13 @@ namespace LOSOverlay
             switch (mode)
             {
                 case LOSMode.Off:
-                    return "LOS overlay off. Left-click to enable static mode.\nRight-click to change view direction.";
+                    return "LOSGizmo_ModeDesc_Off".Translate();
                 case LOSMode.Static:
                     return CanLean(thing)
-                        ? "Static LOS from this position.\nGreen = clear, Yellow = partial cover, Red = heavy cover.\nLeft-click for leaning mode. Right-click for view direction."
-                        : "Static LOS from this position.\nGreen = clear, Yellow = partial cover, Red = heavy cover.\nLeft-click to turn off. Right-click for view direction.";
+                        ? "LOSGizmo_ModeDesc_Static_CanLean".Translate()
+                        : "LOSGizmo_ModeDesc_Static_CannotLean".Translate();
                 case LOSMode.Leaning:
-                    return "LOS including lean-around-corner positions.\nGreen = clear, Yellow = partial cover, Red = heavy cover.\nLeft-click to turn off. Right-click for view direction.";
+                    return "LOSGizmo_ModeDesc_Leaning".Translate();
                 default:
                     return "";
             }

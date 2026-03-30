@@ -43,8 +43,8 @@ namespace LOSOverlay
             yield return new Gizmo_LOSMode(this);          // right-click for direction
             yield return new Command_Action
             {
-                defaultLabel = "Remove Observer",
-                defaultDesc = "Remove this LOS observer.",
+                defaultLabel = "LOSPlanningMarker_RemoveObserver_Label".Translate(),
+                defaultDesc = "LOSPlanningMarker_RemoveObserver_Desc".Translate(),
                 icon = TexCommand.ClearPrioritizedWork,
                 action = () => { if (!Destroyed) Destroy(); }
             };
@@ -61,7 +61,7 @@ namespace LOSOverlay
 
         public override string GetInspectString()
         {
-            return "LOS Observer - select to view overlay\nLeft-click the LOS gizmo to cycle mode. Right-click for offensive/defensive view.";
+            return "LOSPlanningMarker_InspectString".Translate();
         }
     }
 }

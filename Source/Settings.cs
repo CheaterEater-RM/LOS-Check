@@ -79,61 +79,61 @@ namespace LOSOverlay
             listing.Begin(inRect);
 
             // --- General settings ---
-            listing.Label($"Default offensive range: {Settings.DefaultRange}");
+            listing.Label("LOSSettings_DefaultOffensiveRange".Translate(Settings.DefaultRange.ToString()));
             Settings.DefaultRange = (int)listing.Slider(Settings.DefaultRange, 10f, 100f);
 
-            listing.Label($"Default defensive range: {Settings.DefaultDefensiveRange}");
+            listing.Label("LOSSettings_DefaultDefensiveRange".Translate(Settings.DefaultDefensiveRange.ToString()));
             Settings.DefaultDefensiveRange = (int)listing.Slider(Settings.DefaultDefensiveRange, 10f, 100f);
 
-            listing.Label($"Overlay opacity: {Settings.OverlayOpacity:P0}");
+            listing.Label("LOSSettings_OverlayOpacity".Translate(Settings.OverlayOpacity.ToStringPercent()));
             Settings.OverlayOpacity = listing.Slider(Settings.OverlayOpacity, 0.1f, 0.9f);
 
-            listing.CheckboxLabeled("Hide cover map button", ref Settings.HideCoverMapButton,
-                "Hide the cover map toggle button from the overlay controls.");
+            listing.CheckboxLabeled("LOSSettings_HideCoverMapButton".Translate(), ref Settings.HideCoverMapButton,
+                "LOSSettings_HideCoverMapButton_Tooltip".Translate());
 
             listing.GapLine();
 
             // --- Cover color thresholds ---
             if (CEActive)
             {
-                listing.Label("Cover color bands (CE — height in meters)");
+                listing.Label("LOSSettings_ColorBands_CE".Translate());
                 listing.Gap(4f);
 
-                listing.Label($"Green up to: {Settings.CEThresh1:F2}m");
+                listing.Label("LOSSettings_CEThresh1".Translate(Settings.CEThresh1.ToString("F2")));
                 Settings.CEThresh1 = listing.Slider(Settings.CEThresh1, 0f, 0.50f);
 
-                listing.Label($"Yellow-green up to: {Settings.CEThresh2:F2}m  (chunks ≈ 0.88m)");
+                listing.Label("LOSSettings_CEThresh2".Translate(Settings.CEThresh2.ToString("F2")));
                 Settings.CEThresh2 = listing.Slider(Settings.CEThresh2, Settings.CEThresh1, 1.20f);
 
-                listing.Label($"Yellow up to: {Settings.CEThresh3:F2}m  (sandbags/barricades ≈ 1.05m)");
+                listing.Label("LOSSettings_CEThresh3".Translate(Settings.CEThresh3.ToString("F2")));
                 Settings.CEThresh3 = listing.Slider(Settings.CEThresh3, Settings.CEThresh2, 1.50f);
 
-                listing.Label($"Orange up to: {Settings.CEThresh4:F2}m  (embrasures ≈ 1.23m)");
+                listing.Label("LOSSettings_CEThresh4".Translate(Settings.CEThresh4.ToString("F2")));
                 Settings.CEThresh4 = listing.Slider(Settings.CEThresh4, Settings.CEThresh3, 2.00f);
 
-                listing.Label("Red: anything above orange threshold");
+                listing.Label("LOSSettings_ThresholdWarning".Translate());
             }
             else
             {
-                listing.Label("Cover color bands (Vanilla — cover percentage)");
+                listing.Label("LOSSettings_ColorBands_Vanilla".Translate());
                 listing.Gap(4f);
 
-                listing.Label($"Green up to: {Settings.VanillaThresh1:P0}");
+                listing.Label("LOSSettings_VanillaThresh1".Translate(Settings.VanillaThresh1.ToStringPercent()));
                 Settings.VanillaThresh1 = listing.Slider(Settings.VanillaThresh1, 0f, 0.10f);
 
-                listing.Label($"Yellow-green up to: {Settings.VanillaThresh2:P0}  (chunks = 50%)");
+                listing.Label("LOSSettings_VanillaThresh2".Translate(Settings.VanillaThresh2.ToStringPercent()));
                 Settings.VanillaThresh2 = listing.Slider(Settings.VanillaThresh2, Settings.VanillaThresh1, 0.60f);
 
-                listing.Label($"Yellow up to: {Settings.VanillaThresh3:P0}  (sandbags = 55%)");
+                listing.Label("LOSSettings_VanillaThresh3".Translate(Settings.VanillaThresh3.ToStringPercent()));
                 Settings.VanillaThresh3 = listing.Slider(Settings.VanillaThresh3, Settings.VanillaThresh2, 0.80f);
 
-                listing.Label($"Orange up to: {Settings.VanillaThresh4:P0}  (walls = 75%)");
+                listing.Label("LOSSettings_VanillaThresh4".Translate(Settings.VanillaThresh4.ToStringPercent()));
                 Settings.VanillaThresh4 = listing.Slider(Settings.VanillaThresh4, Settings.VanillaThresh3, 1.00f);
 
-                listing.Label("Red: anything above orange threshold");
+                listing.Label("LOSSettings_ThresholdWarning".Translate());
             }
 
-            if (listing.ButtonText("Reset color thresholds to defaults"))
+            if (listing.ButtonText("LOSSettings_ResetButton".Translate()))
             {
                 if (CEActive)
                 {

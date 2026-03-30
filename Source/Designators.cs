@@ -126,8 +126,8 @@ namespace LOSOverlay
 
         public Designator_PlanWall()
         {
-            defaultLabel = "Plan Wall";
-            defaultDesc = "Place hypothetical walls that block LOS.\nDrag to place lines or rectangles.";
+            defaultLabel = "LOSDesignator_PlanWall_Label".Translate();
+            defaultDesc = "LOSDesignator_PlanWall_Desc".Translate();
             icon = LOSTex.Wall;
         }
 
@@ -139,8 +139,8 @@ namespace LOSOverlay
 
         public Designator_PlanCover()
         {
-            defaultLabel = "Plan Cover";
-            defaultDesc = "Place hypothetical cover (sandbag-equivalent).\nDrag to place lines or rectangles.";
+            defaultLabel = "LOSDesignator_PlanCover_Label".Translate();
+            defaultDesc = "LOSDesignator_PlanCover_Desc".Translate();
             icon = LOSTex.Cover;
         }
     }
@@ -151,8 +151,8 @@ namespace LOSOverlay
 
         public Designator_PlanOpen()
         {
-            defaultLabel = "Plan Opening";
-            defaultDesc = "Mark a cell as open space for LOS calculations.\nDrag to place lines or rectangles.";
+            defaultLabel = "LOSDesignator_PlanOpen_Label".Translate();
+            defaultDesc = "LOSDesignator_PlanOpen_Desc".Translate();
             icon = LOSTex.Open;
         }
     }
@@ -165,8 +165,8 @@ namespace LOSOverlay
     {
         public Designator_PlaceObserver()
         {
-            defaultLabel = "LOS Observer";
-            defaultDesc = "Place an observer point. Select it to view LOS overlay.";
+            defaultLabel = "LOSDesignator_PlaceObserver_Label".Translate();
+            defaultDesc = "LOSDesignator_PlaceObserver_Desc".Translate();
             icon = LOSTex.Observer;
             soundSucceeded = SoundDefOf.Designate_PlanAdd;
             useMouseIcon = true;
@@ -211,8 +211,8 @@ namespace LOSOverlay
     {
         public Designator_RemoveLOSPlanning()
         {
-            defaultLabel = "Remove LOS Plan";
-            defaultDesc = "Click or drag to remove LOS planning markers.";
+            defaultLabel = "LOSDesignator_RemoveLOSPlanning_Label".Translate();
+            defaultDesc = "LOSDesignator_RemoveLOSPlanning_Desc".Translate();
             icon = LOSTex.RemoveLOSPlan ?? TexCommand.ClearPrioritizedWork;
             soundDragSustain = SoundDefOf.Designate_DragStandard;
             soundDragChanged = SoundDefOf.Designate_DragStandard_Changed;
@@ -283,8 +283,8 @@ namespace LOSOverlay
     {
         public Designator_ClearAllPlanning()
         {
-            defaultLabel = "Clear All LOS";
-            defaultDesc = "Remove ALL LOS planning markers from the map.";
+            defaultLabel = "LOSDesignator_ClearAllPlanning_Label".Translate();
+            defaultDesc = "LOSDesignator_ClearAllPlanning_Desc".Translate();
             icon = LOSTex.ClearAllLOS ?? TexCommand.ClearPrioritizedWork;
             soundSucceeded = SoundDefOf.Designate_PlanRemove;
             useMouseIcon = false;
@@ -301,7 +301,7 @@ namespace LOSOverlay
             foreach (var m in markers) if (!m.Destroyed) m.Destroy();
             map.GetComponent<HypotheticalMapState>().ClearAll();
             OverlayRenderer.ClearOverlay(); Gizmo_LOSMode.ClearAllCaches();
-            Messages.Message("All LOS planning markers cleared.", MessageTypeDefOf.NeutralEvent, false);
+            Messages.Message("LOSOverlay_Message_AllCleared".Translate(), MessageTypeDefOf.NeutralEvent, false);
         }
     }
 
@@ -309,8 +309,8 @@ namespace LOSOverlay
     {
         public Designator_CombinedView()
         {
-            defaultLabel = "Combined LOS View";
-            defaultDesc = "Show combined STATIC LOS from ALL observer markers (outgoing fire only).\nCover shown is the minimum (most exposed angle).";
+            defaultLabel = "LOSDesignator_CombinedView_Label".Translate();
+            defaultDesc = "LOSDesignator_CombinedView_Desc".Translate();
             icon = LOSTex.CombinedLOSView ?? TexCommand.Attack;
             soundSucceeded = SoundDefOf.Click;
             useMouseIcon = false;
@@ -329,14 +329,14 @@ namespace LOSOverlay
                 var observers = new List<IntVec3>(hypo.ObserverPositions);
                 if (observers.Count == 0)
                 {
-                    Messages.Message("No observer markers placed.", MessageTypeDefOf.RejectInput, false);
+                    Messages.Message("LOSOverlay_Message_NoObservers".Translate(), MessageTypeDefOf.RejectInput, false);
                     hypo.CombinedViewActive = false; return;
                 }
                 var results = new Dictionary<IntVec3, CellLOSResult>();
                 LOSCalculator.ComputeCombinedLOS(observers, map, LOSMode.Static,
                     LOSOverlay_Mod.Settings.DefaultRange, OverlayDirection.Offensive, results);
                 OverlayRenderer.SetOverlayData(results, map);
-                Messages.Message("Combined LOS from " + observers.Count + " observer(s).", MessageTypeDefOf.NeutralEvent, false);
+                Messages.Message("LOSOverlay_Message_CombinedLOS".Translate(observers.Count), MessageTypeDefOf.NeutralEvent, false);
             }
             else OverlayRenderer.ClearOverlay();
         }
@@ -354,9 +354,8 @@ namespace LOSOverlay
     {
         public Designator_TogglePlanningVisibility()
         {
-            defaultLabel   = "Toggle Plan Visibility";
-            defaultDesc    = "Show or hide all LOS planning markers without deleting them.\n" +
-                             "Useful for checking what the map looks like now while keeping your plans for later.";
+            defaultLabel   = "LOSDesignator_TogglePlanningVisibility_Label".Translate();
+            defaultDesc    = "LOSDesignator_TogglePlanningVisibility_Desc".Translate();
             icon           = LOSTex.TogglePlanVisibility ?? LOSTex.ToggleVis;
             soundSucceeded = SoundDefOf.Click;
             useMouseIcon   = false;
@@ -406,10 +405,8 @@ namespace LOSOverlay
 
         public Designator_ToggleCoverMap()
         {
-            defaultLabel = "Terrain Cover Map";
-            defaultDesc  = "Toggle a map-wide overlay showing the inherent cover value of every terrain cell.\n" +
-                           "Green = no cover, Yellow = partial, Red = heavy cover (walls).\n" +
-                           "No shooter position needed — this is pure per-cell terrain cover.";
+            defaultLabel = "LOSDesignator_ToggleCoverMap_Label".Translate();
+            defaultDesc  = "LOSDesignator_ToggleCoverMap_Desc".Translate();
             icon         = LOSTex.CoverOverlay;
             soundSucceeded = SoundDefOf.Click;
             useMouseIcon = false;

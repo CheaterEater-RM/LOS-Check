@@ -1,4 +1,87 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
-  <ShowCoverMapOverlay>Show terrain cover overlay</ShowCoverMapOverlay>
+  <!-- === Designators: Planning tools === -->
+  <LOSDesignator_PlanWall_Label>Plan Wall</LOSDesignator_PlanWall_Label>
+  <LOSDesignator_PlanWall_Desc>Place hypothetical walls that block LOS.\nDrag to place lines or rectangles.</LOSDesignator_PlanWall_Desc>
+
+  <LOSDesignator_PlanCover_Label>Plan Cover</LOSDesignator_PlanCover_Label>
+  <LOSDesignator_PlanCover_Desc>Place hypothetical cover (sandbag-equivalent).\nDrag to place lines or rectangles.</LOSDesignator_PlanCover_Desc>
+
+  <LOSDesignator_PlanOpen_Label>Plan Opening</LOSDesignator_PlanOpen_Label>
+  <LOSDesignator_PlanOpen_Desc>Mark a cell as open space for LOS calculations.\nDrag to place lines or rectangles.</LOSDesignator_PlanOpen_Desc>
+
+  <LOSDesignator_PlaceObserver_Label>LOS Observer</LOSDesignator_PlaceObserver_Label>
+  <LOSDesignator_PlaceObserver_Desc>Place an observer point. Select it to view LOS overlay.</LOSDesignator_PlaceObserver_Desc>
+
+  <LOSDesignator_RemoveLOSPlanning_Label>Remove LOS Plan</LOSDesignator_RemoveLOSPlanning_Label>
+  <LOSDesignator_RemoveLOSPlanning_Desc>Click or drag to remove LOS planning markers.</LOSDesignator_RemoveLOSPlanning_Desc>
+
+  <LOSDesignator_ClearAllPlanning_Label>Clear All LOS Plans</LOSDesignator_ClearAllPlanning_Label>
+  <LOSDesignator_ClearAllPlanning_Desc>Remove ALL LOS planning markers from the map.</LOSDesignator_ClearAllPlanning_Desc>
+
+  <LOSDesignator_CombinedView_Label>Combined LOS View</LOSDesignator_CombinedView_Label>
+  <LOSDesignator_CombinedView_Desc>Show combined STATIC LOS from ALL observer markers (outgoing fire only).\nCover shown is the minimum (most exposed angle).</LOSDesignator_CombinedView_Desc>
+
+  <LOSDesignator_TogglePlanningVisibility_Label>Toggle Plan Visibility</LOSDesignator_TogglePlanningVisibility_Label>
+  <LOSDesignator_TogglePlanningVisibility_Desc>Show or hide all LOS planning markers without deleting them.\nUseful for checking what the map looks like now while keeping your plans for later.</LOSDesignator_TogglePlanningVisibility_Desc>
+
+  <LOSDesignator_ToggleCoverMap_Label>Show terrain cover overlay</LOSDesignator_ToggleCoverMap_Label>
+  <LOSDesignator_ToggleCoverMap_Desc>Toggle a persistent overlay showing the terrain cover value of each cell.</LOSDesignator_ToggleCoverMap_Desc>
+
+  <!-- === Planning Marker (Observer) Gizmo === -->
+  <LOSPlanningMarker_RemoveObserver_Label>Remove Observer</LOSPlanningMarker_RemoveObserver_Label>
+  <LOSPlanningMarker_RemoveObserver_Desc>Remove this LOS observer.</LOSPlanningMarker_RemoveObserver_Desc>
+  <LOSPlanningMarker_InspectString>LOS Observer - select to view overlay\nLeft-click the LOS gizmo to cycle mode. Right-click for offensive/defensive view.</LOSPlanningMarker_InspectString>
+
+  <!-- === LOS Mode Gizmo === -->
+  <LOSGizmo_ModeLabel_Prefix>LOS: </LOSGizmo_ModeLabel_Prefix>
+
+  <LOSGizmo_ModeDesc_Off>LOS overlay off. Left-click to enable static mode.\nRight-click to change view direction.</LOSGizmo_ModeDesc_Off>
+  
+  <LOSGizmo_ModeDesc_Static_CanLean>Static LOS from this position.\nGreen = clear, Yellow = partial cover, Red = heavy cover.\nLeft-click for leaning mode. Right-click for view direction.</LOSGizmo_ModeDesc_Static_CanLean>
+  
+  <LOSGizmo_ModeDesc_Static_CannotLean>Static LOS from this position.\nGreen = clear, Yellow = partial cover, Red = heavy cover.\nLeft-click to turn off. Right-click for view direction.</LOSGizmo_ModeDesc_Static_CannotLean>
+  
+  <LOSGizmo_ModeDesc_Leaning>LOS including lean-around-corner positions.\nGreen = clear, Yellow = partial cover, Red = heavy cover.\nLeft-click to turn off. Right-click for view direction.</LOSGizmo_ModeDesc_Leaning>
+
+  <LOSGizmo_RightClick_Offensive>Offensive (cover targets have FROM you)</LOSGizmo_RightClick_Offensive>
+  <LOSGizmo_RightClick_Defensive>Defensive (cover YOU have from each threat)</LOSGizmo_RightClick_Defensive>
+
+  <!-- === Overlay Tooltips and Messages === -->
+  <LOSOverlay_Tooltip_NoLOS>No line of sight</LOSOverlay_Tooltip_NoLOS>
+  <LOSOverlay_Tooltip_Clear>Clear - no cover</LOSOverlay_Tooltip_Clear>
+  <LOSOverlay_Tooltip_Impassable>Impassable - blocks line of sight</LOSOverlay_Tooltip_Impassable>
+  <LOSOverlay_Tooltip_TerrainCoverNone>Terrain cover: none</LOSOverlay_Tooltip_TerrainCoverNone>
+  <LOSOverlay_Tooltip_TerrainCover>Terrain cover: {0}</LOSOverlay_Tooltip_TerrainCover>
+
+  <LOSOverlay_Message_NoObservers>No observer markers placed.</LOSOverlay_Message_NoObservers>
+  <LOSOverlay_Message_AllCleared>All LOS planning markers cleared.</LOSOverlay_Message_AllCleared>
+  <LOSOverlay_Message_CombinedLOS>Combined LOS from {0} observer(s).</LOSOverlay_Message_CombinedLOS>
+
+  <!-- === Cover Labels === -->
+  <LOSCover_VanillaLabel>{0} cover</LOSCover_VanillaLabel>
+  <LOSCover_CELabel>{0}m cover height</LOSCover_CELabel>
+
+  <!-- === Settings UI === -->
+  <LOSSettings_DefaultOffensiveRange>Default offensive range: {0}</LOSSettings_DefaultOffensiveRange>
+  <LOSSettings_DefaultDefensiveRange>Default defensive range: {0}</LOSSettings_DefaultDefensiveRange>
+  <LOSSettings_OverlayOpacity>Overlay opacity: {0}</LOSSettings_OverlayOpacity>
+  <LOSSettings_HideCoverMapButton>Hide cover map button</LOSSettings_HideCoverMapButton>
+  <LOSSettings_HideCoverMapButton_Tooltip>Hide the cover map toggle button from the overlay controls.</LOSSettings_HideCoverMapButton_Tooltip>
+
+  <LOSSettings_ColorBands_CE>Cover color bands (CE — height in meters)</LOSSettings_ColorBands_CE>
+  <LOSSettings_ColorBands_Vanilla>Cover color bands (Vanilla — cover percentage)</LOSSettings_ColorBands_Vanilla>
+
+  <LOSSettings_CEThresh1>Green up to: {0}m</LOSSettings_CEThresh1>
+  <LOSSettings_CEThresh2>Yellow-green up to: {0}m  (chunks ≈ 0.88m)</LOSSettings_CEThresh2>
+  <LOSSettings_CEThresh3>Yellow up to: {0}m  (sandbags/barricades ≈ 1.05m)</LOSSettings_CEThresh3>
+  <LOSSettings_CEThresh4>Orange up to: {0}m  (embrasures ≈ 1.23m)</LOSSettings_CEThresh4>
+
+  <LOSSettings_VanillaThresh1>Green up to: {0}</LOSSettings_VanillaThresh1>
+  <LOSSettings_VanillaThresh2>Yellow-green up to: {0}  (chunks = 50%)</LOSSettings_VanillaThresh2>
+  <LOSSettings_VanillaThresh3>Yellow up to: {0}  (sandbags = 55%)</LOSSettings_VanillaThresh3>
+  <LOSSettings_VanillaThresh4>Orange up to: {0}  (walls = 75%)</LOSSettings_VanillaThresh4>
+
+  <LOSSettings_ThresholdWarning>Red: anything above orange threshold</LOSSettings_ThresholdWarning>
+  <LOSSettings_ResetButton>Reset color thresholds to defaults</LOSSettings_ResetButton>
 </LanguageData>

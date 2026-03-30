@@ -61,7 +61,7 @@ namespace LOSOverlay
         public string GetCoverLabel(float rawValue)
         {
             float meters = rawValue * CE_METERS_PER_CELL;
-            return $"{meters:F2}m cover height";
+            return "LOSCover_CELabel".Translate(meters.ToString("F2"));
         }
 
         public bool BlocksLOS(Thing thing)

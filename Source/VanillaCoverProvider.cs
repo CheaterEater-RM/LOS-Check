@@ -35,7 +35,8 @@ namespace LOSOverlay
 
         public string GetCoverLabel(float rawValue)
         {
-            return $"{rawValue:P0} cover";
+            var formatted = rawValue.ToStringPercent();
+            return "LOSCover_VanillaLabel".Translate(formatted);
         }
 
         public bool BlocksLOS(Thing thing)

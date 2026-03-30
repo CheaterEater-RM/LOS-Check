@@ -183,8 +183,8 @@ namespace LOSOverlay
             // LOS overlay takes priority — show LOS context first.
             if (_overlayActive && _currentResults.TryGetValue(cell, out result))
             {
-                if (!result.HasLOS) return "No line of sight";
-                if (result.CoverValue <= 0.01f) return "Clear - no cover";
+                if (!result.HasLOS) return "LOSOverlay_Tooltip_NoLOS".Translate();
+                if (result.CoverValue <= 0.01f) return "LOSOverlay_Tooltip_Clear".Translate();
                 return LOSOverlay_Mod.CoverProvider.GetCoverLabel(result.CoverValue);
             }
 
@@ -193,9 +193,9 @@ namespace LOSOverlay
             // map whose coordinates overlap with the current map.
             if (_coverMapActive && _coverMapMap == Find.CurrentMap && _coverMapResults.TryGetValue(cell, out result))
             {
-                if (!result.HasLOS) return "Impassable - blocks line of sight";
-                if (result.CoverValue <= 0.01f) return "Terrain cover: none";
-                return "Terrain cover: " + LOSOverlay_Mod.CoverProvider.GetCoverLabel(result.CoverValue);
+                if (!result.HasLOS) return "LOSOverlay_Tooltip_Impassable".Translate();
+                if (result.CoverValue <= 0.01f) return "LOSOverlay_Tooltip_TerrainCoverNone".Translate();
+                return "LOSOverlay_Tooltip_TerrainCover".Translate(LOSOverlay_Mod.CoverProvider.GetCoverLabel(result.CoverValue));
             }
 
             return null;
