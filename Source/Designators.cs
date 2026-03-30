@@ -36,6 +36,12 @@ namespace LOSOverlay
         public static readonly Texture2D Offensive = ContentFinder<Texture2D>.Get("UI/Designators/LOS_Offensive", reportFailure: false);
         /// <summary>Right-click menu icon for defensive direction option.</summary>
         public static readonly Texture2D Defensive = ContentFinder<Texture2D>.Get("UI/Designators/LOS_Defensive", reportFailure: false);
+
+        // --- Menu designator icons ---
+        public static readonly Texture2D TogglePlanVisibility = ContentFinder<Texture2D>.Get("UI/Designators/LOS_TogglePlanVisibility", reportFailure: false);
+        public static readonly Texture2D CombinedLOSView = ContentFinder<Texture2D>.Get("UI/Designators/LOS_CombinedLOSView", reportFailure: false);
+        public static readonly Texture2D RemoveLOSPlan = ContentFinder<Texture2D>.Get("UI/Designators/LOS_RemoveLOSPlan", reportFailure: false);
+        public static readonly Texture2D ClearAllLOS = ContentFinder<Texture2D>.Get("UI/Designators/LOS_ClearAllLOS", reportFailure: false);
     }
 
     public abstract class Designator_LOSPlanDesignation : Designator
@@ -207,7 +213,7 @@ namespace LOSOverlay
         {
             defaultLabel = "Remove LOS Plan";
             defaultDesc = "Click or drag to remove LOS planning markers.";
-            icon = TexCommand.ClearPrioritizedWork;
+            icon = LOSTex.RemoveLOSPlan ?? TexCommand.ClearPrioritizedWork;
             soundDragSustain = SoundDefOf.Designate_DragStandard;
             soundDragChanged = SoundDefOf.Designate_DragStandard_Changed;
             soundSucceeded = SoundDefOf.Designate_PlanRemove;
@@ -279,7 +285,7 @@ namespace LOSOverlay
         {
             defaultLabel = "Clear All LOS";
             defaultDesc = "Remove ALL LOS planning markers from the map.";
-            icon = TexCommand.ClearPrioritizedWork;
+            icon = LOSTex.ClearAllLOS ?? TexCommand.ClearPrioritizedWork;
             soundSucceeded = SoundDefOf.Designate_PlanRemove;
             useMouseIcon = false;
         }
@@ -304,8 +310,8 @@ namespace LOSOverlay
         public Designator_CombinedView()
         {
             defaultLabel = "Combined LOS View";
-            defaultDesc = "Show combined LOS from ALL observer markers.\nCover shown is the minimum (most exposed angle).";
-            icon = TexCommand.Attack;
+            defaultDesc = "Show combined STATIC LOS from ALL observer markers (outgoing fire only).\nCover shown is the minimum (most exposed angle).";
+            icon = LOSTex.CombinedLOSView ?? TexCommand.Attack;
             soundSucceeded = SoundDefOf.Click;
             useMouseIcon = false;
         }
@@ -351,7 +357,7 @@ namespace LOSOverlay
             defaultLabel   = "Toggle Plan Visibility";
             defaultDesc    = "Show or hide all LOS planning markers without deleting them.\n" +
                              "Useful for checking what the map looks like now while keeping your plans for later.";
-            icon           = LOSTex.ToggleVis;
+            icon           = LOSTex.TogglePlanVisibility ?? LOSTex.ToggleVis;
             soundSucceeded = SoundDefOf.Click;
             useMouseIcon   = false;
         }
